@@ -4,10 +4,13 @@ import { useState, useMemo } from "react"
 import {
   priests,
   serviceTypes,
+  weekdays,
   type Priest,
   type PriestStatus,
   type PriestAvailability,
+  type Weekday,
 } from "@/lib/mock-data"
+import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -122,6 +125,16 @@ const availabilityConfig: Record<
   },
 }
 
+const weekdayShortLabels: Record<Weekday, string> = {
+  Monday: "Mon",
+  Tuesday: "Tue",
+  Wednesday: "Wed",
+  Thursday: "Thu",
+  Friday: "Fri",
+  Saturday: "Sat",
+  Sunday: "Sun",
+}
+
 interface FormData {
   name: string
   title: string
@@ -129,6 +142,7 @@ interface FormData {
   phone: string
   ordinationDate: string
   assignedServices: string[]
+  preferredWeekdays: Weekday[]
 }
 
 const emptyFormData: FormData = {
@@ -138,6 +152,7 @@ const emptyFormData: FormData = {
   phone: "",
   ordinationDate: "",
   assignedServices: [],
+  preferredWeekdays: [],
 }
 
 export function PriestManagementPage() {
@@ -215,6 +230,7 @@ export function PriestManagementPage() {
       availability: "Available",
       servicePeriod: `${currentYear} - Present`,
       assignedServices: formData.assignedServices,
+      preferredWeekdays: formData.preferredWeekdays,
       email: formData.email,
       phone: formData.phone,
       ordinationDate: formData.ordinationDate,
@@ -233,6 +249,7 @@ export function PriestManagementPage() {
       phone: priest.phone,
       ordinationDate: priest.ordinationDate,
       assignedServices: [...priest.assignedServices],
+      preferredWeekdays: [...priest.preferredWeekdays],
     })
     setSelectedPriest(priest)
     setEditDialogOpen(true)
@@ -251,6 +268,7 @@ export function PriestManagementPage() {
               phone: formData.phone,
               ordinationDate: formData.ordinationDate,
               assignedServices: formData.assignedServices,
+              preferredWeekdays: formData.preferredWeekdays,
             }
           : p
       )
@@ -284,6 +302,16 @@ export function PriestManagementPage() {
         ? prev.assignedServices.filter((s) => s !== service)
         : [...prev.assignedServices, service]
       return { ...prev, assignedServices: services }
+    })
+  }
+
+  // Toggle preferred weekday
+  const handleToggleWeekday = (day: Weekday) => {
+    setFormData((prev) => {
+      const days = prev.preferredWeekdays.includes(day)
+        ? prev.preferredWeekdays.filter((d) => d !== day)
+        : [...prev.preferredWeekdays, day]
+      return { ...prev, preferredWeekdays: days }
     })
   }
 
@@ -396,6 +424,32 @@ export function PriestManagementPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Preferred Weekdays</Label>
+        <div className="flex flex-wrap gap-2 rounded-md border p-3 bg-muted/30">
+          {weekdays.map((day) => {
+            const isSelected = formData.preferredWeekdays.includes(day)
+            const short = weekdayShortLabels[day]
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => handleToggleWeekday(day)}
+                className={cn(
+                  "flex h-9 w-12 items-center justify-center rounded-md text-xs font-semibold transition-all duration-150 border",
+                  isSelected
+                    ? "bg-[#1B2A4A] text-white border-[#1B2A4A] shadow-sm"
+                    : "bg-white text-muted-foreground border-muted hover:border-[#1B2A4A]/30 hover:text-[#1B2A4A]"
+                )}
+              >
+                {short}
+              </button>
+            )
+          })}
+        </div>
+        <p className="text-xs text-muted-foreground">Select the weekdays this priest prefers to serve.</p>
       </div>
     </div>
   )
@@ -535,8 +589,8 @@ export function PriestManagementPage() {
                   <TableHead className="text-[#1B2A4A] font-semibold">Title</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Status</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Availability</TableHead>
-                  <TableHead className="text-[#1B2A4A] font-semibold hidden md:table-cell">Service Period</TableHead>
-                  <TableHead className="text-[#1B2A4A] font-semibold">Assigned Services</TableHead>
+                  <TableHead className="text-[#1B2A4A] font-semibold hidden md:table-cell">Preferred Days</TableHead>
+                  <TableHead className="text-[#1B2A4A] font-semibold hidden lg:table-cell">Assigned Services</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -567,9 +621,25 @@ export function PriestManagementPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground hidden md:table-cell">
-                        {priest.servicePeriod}
+                        <div className="flex flex-wrap gap-1">
+                          {priest.preferredWeekdays.length > 0 ? (
+                            priest.preferredWeekdays.map((day) => {
+                              const short = weekdayShortLabels[day]
+                              return (
+                                <span
+                                  key={day}
+                                  className="inline-flex h-6 items-center justify-center rounded bg-[#1B2A4A]/10 px-1.5 text-[10px] font-semibold text-[#1B2A4A]"
+                                >
+                                  {short}
+                                </span>
+                              )
+                            })
+                          ) : (
+                            <span className="text-xs text-muted-foreground">None</span>
+                          )}
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {priest.assignedServices.length > 0 ? (
                             priest.assignedServices.map((service) => (
@@ -728,6 +798,39 @@ export function PriestManagementPage() {
                   <p className="text-sm text-muted-foreground">Ordination Date</p>
                   <p className="font-medium">{selectedPriest.ordinationDate}</p>
                 </div>
+              </div>
+
+              <Separator />
+
+              {/* Preferred Weekdays */}
+              <div>
+                <h4 className="text-sm font-semibold text-[#1B2A4A] mb-3 flex items-center gap-1.5">
+                  <CalendarDays className="h-4 w-4 text-[#D4AD63]" />
+                  Preferred Weekdays
+                </h4>
+                {selectedPriest.preferredWeekdays.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {weekdays.map((day) => {
+                      const isSelected = selectedPriest.preferredWeekdays.includes(day)
+                      const short = weekdayShortLabels[day]
+                      return (
+                        <span
+                          key={day}
+                          className={cn(
+                            "inline-flex h-8 items-center justify-center rounded-md px-2.5 text-xs font-semibold transition-all border",
+                            isSelected
+                              ? "bg-[#1B2A4A] text-white border-[#1B2A4A]"
+                              : "bg-muted/30 text-muted-foreground border-muted"
+                          )}
+                        >
+                          {short}
+                        </span>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No preferred weekdays set</p>
+                )}
               </div>
 
               <Separator />

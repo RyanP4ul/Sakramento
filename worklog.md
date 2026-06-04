@@ -190,3 +190,128 @@ Stage Summary:
 - All pages connected and working
 - Application accessible at / route
 - Login → Dashboard → all pages accessible via sidebar navigation
+---
+Task ID: 1
+Agent: Main
+Task: Restrict Payment Method to only Cash and GCash
+
+Work Log:
+- Read current project state: mock-data.ts, payment-page.tsx, donation-page.tsx, store.ts, sidebar.tsx, page.tsx
+- Added `PaymentMethodType` type ("Cash" | "GCash") to mock-data.ts
+- Changed `PaymentRecord.paymentMethod` type from `string?` to `PaymentMethodType?`
+- Changed payment record id 12's paymentMethod from "Bank Transfer" to "GCash"
+- Added `methodFilterOptions` array with "All", "Cash", "GCash" to PaymentPage
+- Added `methodFilter` state to PaymentPage
+- Added Method filter Select dropdown between Status and Date filters
+- Added `matchesMethod` logic to filteredRecords useMemo
+- Added `methodFilter` to useMemo dependency array
+- Verified no lint errors
+
+Stage Summary:
+- Payment page Method column and filter now only show "Cash" and "GCash"
+- All payment mock data updated to use only Cash/GCash
+- Method filter dropdown added to Payment page search & filters section
+---
+Task ID: 1
+Agent: Main
+Task: Add Upcoming Events page with search, filters, and table
+
+Work Log:
+- Added `EventCategory` type and `UpcomingEvent` interface to mock-data.ts
+- Created 16 upcoming event records with varied categories (Liturgical, Community, Sacramental, Fundraising, Youth, Formation)
+- Created `src/components/pages/events-page.tsx` with:
+  - 4 stat cards: Total Events, This Month, This Week, Categories
+  - Search input (by event name, description, organizer)
+  - Category filter dropdown with 6 categories
+  - Date range filters (From/To) with clear button
+  - Table with Event Name, Date, Time, About, Action (View) columns
+  - View Details dialog showing all event info (date, time, venue, organizer, about)
+  - Pagination with page controls
+- Added "events" to `PageName` type in store.ts
+- Added "Upcoming Events" nav item with CalendarCheck icon in sidebar.tsx
+- Added EventsPage import and case in page.tsx renderer
+- Verified no lint errors, dev server compiles cleanly
+
+Stage Summary:
+- New "Upcoming Events" page fully functional with search, category filter, date filters, table, view dialog, and pagination
+- 16 mock events across 6 categories with realistic parish event data
+- Consistent UI patterns matching existing pages (stat cards, filters, table, dialog)
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Replace Baptism certificate in Sakramental Records with the uploaded image template
+
+Work Log:
+- Analyzed uploaded baptism certificate image using VLM to understand layout: green ornate border, Diocese of Malolos header, ST. PETER THE APOSTLE PARISH CHURCH, BAPTISMAL CERTIFICATE title, formal certification fields
+- Copied uploaded image to /home/z/my-project/public/baptism-certificate-template.png
+- Added new fields to SakramentalRecord interface: birthDate, birthPlace, bookNo, pageNo, lineNo
+- Updated all 6 Baptism mock records with new fields (birthDate, birthPlace, bookNo, pageNo, lineNo)
+- Replaced the entire Baptism certificate layout in the Certificate Viewer Dialog with a new design matching the uploaded image:
+  - Green ornate border with repeating 45° stripe pattern
+  - Inner border with outline offset for double-border effect
+  - Diocese of Malolos header
+  - Two parish crests flanking the church name
+  - "BAPTISMAL CERTIFICATE" title in green
+  - "This is to Certify" section
+  - Certification details with underlined fields: Name, Child of and, Born on, Birth place
+  - "RECEIVED" section with "The Holy Sacrament of Baptism" in italic green
+  - "On the" and "By the Most Rev." fields
+  - "Sponsors being:" section with individual sponsor names
+  - "ACCORDING TO THE RITES OF THE ROMAN CATHOLIC CHURCH" in green
+  - Book no. / Page / Line no. register reference
+  - Dated, Purposes: FOR REFERENCE (red), Seal sections
+  - Parish Priest and Parish Secretary signature lines
+- Kept existing certificate layout for Confirmation, Wedding, and Funeral Mass
+- Updated FormData interface with new baptism fields
+- Updated Add/Edit form with Birth Date, Birth Place, Book No., Page, Line No. fields for Baptism service type
+- Updated Add/Edit submit handlers to include new fields
+- Updated View Details dialog to show new baptism fields
+- Updated Certificate Generation dialog to show new baptism fields
+- Verified with Agent Browser - all 14 certificate elements confirmed present and working
+
+Stage Summary:
+- Baptism certificate now matches the uploaded image with green ornate border and formal parish layout
+- New data fields (birthDate, birthPlace, bookNo, pageNo, lineNo) added throughout the system
+- Other sacrament certificates (Confirmation, Wedding, Funeral Mass) retain their existing gold-themed layout
+- Lint passes, dev server compiles successfully
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Replace Wedding certificate in Sakramental Records with the uploaded Philippine Certificate of Marriage form
+
+Work Log:
+- Analyzed both uploaded wedding certificate images using VLM - identified as Philippine Certificate of Marriage (Form No. 97) with red borders, structured government form layout
+- First image: Top portion (Sections 1-14) - Husband/Wife personal details in two-column layout
+- Second image: Bottom portion (Sections 15-22) - Marriage details, certifications, witnesses, registrar sections
+- Added 32 Wedding-specific fields to SakramentalRecord interface (husbandFirstName through solemnizingOfficerTitle)
+- Updated all 4 Wedding mock records with comprehensive data
+- Created new Wedding certificate layout matching the Philippine Certificate of Marriage form:
+  - Red border throughout (double border with inner line)
+  - Republic of the Philippines / Office of the Civil Registrar General header
+  - "CERTIFICATE OF MARRIAGE" title with Registry No.
+  - Province: BULACAN / City/Municipality: BALAGTAS (BIGAA)
+  - Section 1: Name of Contracting Parties (First/Middle/Last) with HUSBAND/WIFE columns
+  - Sections 2a-11: Two-column Husband/Wife details (DOB, Age, Birth Place, Citizenship, Residence, Religion, Civil Status, Father, Mother)
+  - Section 15: Place of Marriage
+  - Section 16: Date of Marriage (Day/Month/Year format)
+  - Section 17: Time of Marriage
+  - Section 18: Certification of the Contracting Parties with signature lines
+  - Section 19: Certification of the Solemnizing Officer with Marriage License details
+  - Section 20a: Witnesses (grid of 4 signature slots)
+  - Sections 21-22: Received By / Registered At the Office of the Civil Registrar
+- Updated FormData interface with 32 Wedding fields
+- Updated renderFormFields with comprehensive Wedding form sections
+- Updated Add/Edit submit handlers with Wedding fields
+- Auto-generates Wedding name from husband/wife first+last names
+- Updated View Details dialog with Wedding-specific sections
+- Updated Certificate Generation dialog with Wedding fields
+- Widened certificate dialog to sm:max-w-3xl for better form display
+- Verified with Agent Browser - all 18 required elements confirmed present
+
+Stage Summary:
+- Wedding certificate now matches the Philippine Certificate of Marriage form with red borders and structured layout
+- 32 new data fields added for Wedding records throughout the system
+- Confirmation and Funeral Mass certificates retain their existing gold-themed layout
+- Lint passes, dev server compiles successfully

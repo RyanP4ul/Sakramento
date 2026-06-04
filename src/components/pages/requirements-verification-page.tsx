@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import {
   verificationRecords as initialVerificationRecords,
-  serviceTypes,
+  serviceTypesRequiringVerification,
   type VerificationRecord,
   type VerificationStatus,
   type RequirementCheckItem,
@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
+import { Separator } from "@/components/ui/separator"
+import { Progress } from "@/components/ui/progress"
 import {
   Select,
   SelectContent,
@@ -83,6 +85,24 @@ const statusConfig: Record<
   },
 }
 
+// Calculate progress based on required items checked
+function calcProgress(requirements: RequirementCheckItem[]): number {
+  const requiredItems = requirements.filter((r) => r.required)
+  if (requiredItems.length === 0) return 100
+  const checkedRequired = requiredItems.filter((r) => r.checked).length
+  return Math.round((checkedRequired / requiredItems.length) * 100)
+}
+
+// Group requirements by category
+function groupByCategory(requirements: RequirementCheckItem[]): Record<string, RequirementCheckItem[]> {
+  return requirements.reduce<Record<string, RequirementCheckItem[]>>((acc, req) => {
+    const cat = req.category || "Requirements"
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(req)
+    return acc
+  }, {})
+}
+
 export function RequirementsVerificationPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("All")
@@ -103,15 +123,13 @@ export function RequirementsVerificationPage() {
     return { pending, verified, incomplete, rejected }
   }, [records])
 
-  // Filter records
+  // Filter records - only services that require verification
   const filteredRecords = useMemo(() => {
     return records.filter((r: VerificationRecord) => {
       const query = searchQuery.toLowerCase()
       const matchesSearch = !query || r.applicant.toLowerCase().includes(query)
-
       const matchesStatus = statusFilter === "All" || r.status === statusFilter
       const matchesService = serviceFilter === "All" || r.serviceType === serviceFilter
-
       return matchesSearch && matchesStatus && matchesService
     })
   }, [records, searchQuery, statusFilter, serviceFilter])
@@ -132,7 +150,6 @@ export function RequirementsVerificationPage() {
   const handleReview = (record: VerificationRecord) => {
     setSelectedRecord(record)
     setVerificationNotes(record.notes)
-    // Initialize checked state from the record's requirements
     const initialChecked: Record<number, boolean> = {}
     record.requirements.forEach((req) => {
       initialChecked[req.id] = req.checked
@@ -164,6 +181,15 @@ export function RequirementsVerificationPage() {
     )
     handleCloseDialog()
   }
+
+  // Calculate dialog progress from checkedRequirements state
+  const dialogProgress = useMemo(() => {
+    if (!selectedRecord) return 0
+    const requiredItems = selectedRecord.requirements.filter((r) => r.required)
+    if (requiredItems.length === 0) return 100
+    const checkedRequired = requiredItems.filter((r) => checkedRequirements[r.id] ?? r.checked).length
+    return Math.round((checkedRequired / requiredItems.length) * 100)
+  }, [selectedRecord, checkedRequirements])
 
   const statCards = [
     {
@@ -262,7 +288,7 @@ export function RequirementsVerificationPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All Services</SelectItem>
-                    {serviceTypes.map((type) => (
+                    {serviceTypesRequiringVerification.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -339,6 +365,7 @@ export function RequirementsVerificationPage() {
                   <TableHead className="text-[#1B2A4A] font-semibold">Applicant</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Service Type</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Submitted Date</TableHead>
+                  <TableHead className="text-[#1B2A4A] font-semibold">Progress</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Status</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold text-right">Actions</TableHead>
                 </TableRow>
@@ -347,6 +374,16 @@ export function RequirementsVerificationPage() {
                 {paginatedRecords.map((record) => {
                   const statusCfg = statusConfig[record.status]
                   const StatusIcon = statusCfg.icon
+                  const progress = calcProgress(record.requirements)
+                  const requiredChecked = record.requirements.filter((r) => r.required && r.checked).length
+                  const requiredTotal = record.requirements.filter((r) => r.required).length
+
+                  const progressColor =
+                    progress === 100
+                      ? "text-green-700"
+                      : progress >= 50
+                        ? "text-[#D4AD63]"
+                        : "text-orange-600"
 
                   return (
                     <TableRow key={record.id} className="hover:bg-[#1B2A4A]/[0.02]">
@@ -367,6 +404,17 @@ export function RequirementsVerificationPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {record.submittedDate}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <Progress
+                            value={progress}
+                            className="h-2 flex-1"
+                          />
+                          <span className={`text-xs font-semibold ${progressColor} whitespace-nowrap`}>
+                            {requiredChecked}/{requiredTotal}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -449,7 +497,7 @@ export function RequirementsVerificationPage() {
 
       {/* Review Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-[#1B2A4A] flex items-center gap-2">
               <ClipboardCheck className="h-5 w-5 text-[#D4AD63]" />
@@ -460,145 +508,206 @@ export function RequirementsVerificationPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {selectedRecord && (
-            <div className="space-y-5">
-              {/* Applicant Info */}
-              <div className="grid grid-cols-2 gap-4 rounded-lg bg-[#1B2A4A]/5 p-4">
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                    Applicant
-                  </p>
-                  <p className="text-sm font-semibold text-[#1B2A4A] mt-0.5">
-                    {selectedRecord.applicant}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                    Service Type
-                  </p>
-                  <p className="text-sm font-semibold text-[#1B2A4A] mt-0.5">
-                    {selectedRecord.serviceType}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                    Submitted Date
-                  </p>
-                  <p className="text-sm font-semibold text-[#1B2A4A] mt-0.5">
-                    {selectedRecord.submittedDate}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                    Status
-                  </p>
-                  <div className="mt-0.5">
-                    {(() => {
-                      const statusCfg = statusConfig[selectedRecord.status]
-                      const StatusIcon = statusCfg.icon
-                      return (
-                        <Badge
-                          className={`${statusCfg.bgClass} ${statusCfg.textClass} border-0 text-xs font-medium`}
-                        >
-                          <StatusIcon className="h-3 w-3 mr-0.5" />
-                          {statusCfg.label}
-                        </Badge>
-                      )
-                    })()}
+          {selectedRecord && (() => {
+            const grouped = groupByCategory(selectedRecord.requirements)
+            const requiredTotal = selectedRecord.requirements.filter((r) => r.required).length
+            const requiredChecked = selectedRecord.requirements.filter((r) => r.required && (checkedRequirements[r.id] ?? r.checked)).length
+            const progressColor =
+              dialogProgress === 100
+                ? "text-green-700"
+                : dialogProgress >= 50
+                  ? "text-[#D4AD63]"
+                  : "text-orange-600"
+
+            return (
+              <div className="space-y-5">
+                {/* Applicant Info */}
+                <div className="grid grid-cols-2 gap-4 rounded-lg bg-[#1B2A4A]/5 p-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                      Applicant
+                    </p>
+                    <p className="text-sm font-semibold text-[#1B2A4A] mt-0.5">
+                      {selectedRecord.applicant}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                      Service Type
+                    </p>
+                    <p className="text-sm font-semibold text-[#1B2A4A] mt-0.5">
+                      {selectedRecord.serviceType}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                      Submitted Date
+                    </p>
+                    <p className="text-sm font-semibold text-[#1B2A4A] mt-0.5">
+                      {selectedRecord.submittedDate}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                      Status
+                    </p>
+                    <div className="mt-0.5">
+                      {(() => {
+                        const statusCfg = statusConfig[selectedRecord.status]
+                        const StatusIcon = statusCfg.icon
+                        return (
+                          <Badge
+                            className={`${statusCfg.bgClass} ${statusCfg.textClass} border-0 text-xs font-medium`}
+                          >
+                            <StatusIcon className="h-3 w-3 mr-0.5" />
+                            {statusCfg.label}
+                          </Badge>
+                        )
+                      })()}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Requirements Checklist */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-[#1B2A4A] flex items-center gap-1.5">
-                  <FileText className="h-4 w-4 text-[#D4AD63]" />
-                  Requirements Checklist
-                </h4>
-                <div className="space-y-2 rounded-lg border p-3">
-                  {selectedRecord.requirements.map(
-                    (req: RequirementCheckItem) => (
-                      <div
-                        key={req.id}
-                        className="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-muted/50 transition-colors"
-                      >
-                        <Checkbox
-                          checked={checkedRequirements[req.id] ?? req.checked}
-                          onCheckedChange={(checked) =>
-                            handleCheckChange(req.id, checked === true)
-                          }
-                          className="data-[state=checked]:bg-[#1B2A4A] data-[state=checked]:border-[#1B2A4A]"
-                        />
-                        <span
-                          className={`text-sm flex-1 ${
-                            checkedRequirements[req.id] ?? req.checked
-                              ? "text-foreground line-through opacity-60"
-                              : "text-foreground font-medium"
-                          }`}
-                        >
-                          {req.name}
-                        </span>
-                        {req.hasFile ? (
-                          <button className="inline-flex items-center gap-1 text-xs text-[#1B2A4A] hover:text-[#D4AD63] font-medium transition-colors">
-                            <Eye className="h-3.5 w-3.5" />
-                            View
-                          </button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 gap-1 text-xs text-[#D4AD63] hover:text-[#D4AD63] hover:bg-[#D4AD63]/10"
-                          >
-                            <Upload className="h-3.5 w-3.5" />
-                            Upload
-                          </Button>
-                        )}
-                      </div>
-                    )
-                  )}
+                {/* Progress Bar */}
+                <div className="space-y-2 rounded-lg border p-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-[#1B2A4A] flex items-center gap-1.5">
+                      <FileText className="h-4 w-4 text-[#D4AD63]" />
+                      Overall Progress
+                    </h4>
+                    <span className={`text-sm font-bold ${progressColor}`}>
+                      {dialogProgress}%
+                    </span>
+                  </div>
+                  <Progress value={dialogProgress} className="h-3" />
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">{requiredChecked}</span> of{" "}
+                    <span className="font-medium">{requiredTotal}</span> required documents completed
+                    {dialogProgress === 100 && (
+                      <span className="text-green-600 font-medium ml-1">— Ready for verification</span>
+                    )}
+                  </p>
                 </div>
-              </div>
 
-              {/* Verification Notes */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-[#1B2A4A] flex items-center gap-1.5">
-                  <FileText className="h-4 w-4 text-[#D4AD63]" />
-                  Verification Notes
-                </h4>
-                <Textarea
-                  placeholder="Add verification notes..."
-                  value={verificationNotes}
-                  onChange={(e) => setVerificationNotes(e.target.value)}
-                  className="min-h-[80px] resize-none"
-                />
-              </div>
+                {/* Requirements Checklist - Grouped by Category */}
+                {Object.entries(grouped).map(([category, reqs]) => (
+                  <div key={category} className="space-y-2">
+                    <h4 className="text-sm font-semibold text-[#1B2A4A] flex items-center gap-1.5">
+                      <span className="inline-block h-2 w-2 rounded-full bg-[#D4AD63]" />
+                      {category}
+                    </h4>
+                    <div className="space-y-1 rounded-lg border p-2">
+                      {reqs.map((req: RequirementCheckItem) => {
+                        const isChecked = checkedRequirements[req.id] ?? req.checked
+                        return (
+                          <div
+                            key={req.id}
+                            className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
+                              selectedRecord.status === "Verified" ? "" : "hover:bg-muted/50"
+                            }`}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) =>
+                                handleCheckChange(req.id, checked === true)
+                              }
+                              disabled={selectedRecord.status === "Verified"}
+                              className="data-[state=checked]:bg-[#1B2A4A] data-[state=checked]:border-[#1B2A4A]"
+                            />
+                            <span
+                              className={`text-sm flex-1 ${
+                                isChecked
+                                  ? "text-foreground line-through opacity-60"
+                                  : "text-foreground font-medium"
+                              }`}
+                            >
+                              {req.name}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] px-1.5 py-0 h-5 font-medium ${
+                                req.required
+                                  ? "border-red-200 text-red-600 bg-red-50"
+                                  : "border-gray-200 text-gray-500 bg-gray-50"
+                              }`}
+                            >
+                              {req.required ? "Required" : "Optional"}
+                            </Badge>
+                            {isChecked && req.hasFile ? (
+                              <button className="inline-flex items-center gap-1 text-xs text-[#1B2A4A] hover:text-[#D4AD63] font-medium transition-colors">
+                                <Eye className="h-3.5 w-3.5" />
+                                View
+                              </button>
+                            ) : !isChecked ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 gap-1 text-xs text-[#D4AD63] hover:text-[#D4AD63] hover:bg-[#D4AD63]/10"
+                              >
+                                <Upload className="h-3.5 w-3.5" />
+                                Upload
+                              </Button>
+                            ) : null}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
 
-              {/* Action Buttons */}
-              <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t">
-                <Button
-                  className="bg-green-600 hover:bg-green-700 text-white gap-1.5 flex-1 sm:flex-none"
-                  onClick={() => handleStatusUpdate("Verified")}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Approve
-                </Button>
-                <Button
-                  className="bg-orange-500 hover:bg-orange-600 text-white gap-1.5 flex-1 sm:flex-none"
-                  onClick={() => handleStatusUpdate("Incomplete")}
-                >
-                  <AlertCircle className="h-4 w-4" />
-                  Mark Incomplete
-                </Button>
-                <Button
-                  className="bg-red-600 hover:bg-red-700 text-white gap-1.5 flex-1 sm:flex-none"
-                  onClick={() => handleStatusUpdate("Rejected")}
-                >
-                  <XCircle className="h-4 w-4" />
-                  Reject
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
+                {/* Verification Notes */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-[#1B2A4A] flex items-center gap-1.5">
+                    <FileText className="h-4 w-4 text-[#D4AD63]" />
+                    Verification Notes
+                  </h4>
+                  <Textarea
+                    placeholder="Add verification notes..."
+                    value={verificationNotes}
+                    onChange={(e) => setVerificationNotes(e.target.value)}
+                    className="min-h-[80px] resize-none"
+                    disabled={selectedRecord.status === "Verified"}
+                  />
+                </div>
+
+                {/* Action Buttons - Only show if not already Verified */}
+                {selectedRecord.status === "Verified" ? (
+                  <div className="flex items-center justify-center gap-2 pt-3 border-t">
+                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-50 border border-green-200">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-semibold text-green-700">This verification has already been approved</span>
+                    </div>
+                  </div>
+                ) : (
+                  <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t">
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white gap-1.5 flex-1 sm:flex-none"
+                      onClick={() => handleStatusUpdate("Verified")}
+                      disabled={dialogProgress < 100}
+                      title={dialogProgress < 100 ? "All required documents must be completed first" : "Approve verification"}
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Approve
+                    </Button>
+                    <Button
+                      className="bg-orange-500 hover:bg-orange-600 text-white gap-1.5 flex-1 sm:flex-none"
+                      onClick={() => handleStatusUpdate("Incomplete")}
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      Mark Incomplete
+                    </Button>
+                    <Button
+                      className="bg-red-600 hover:bg-red-700 text-white gap-1.5 flex-1 sm:flex-none"
+                      onClick={() => handleStatusUpdate("Rejected")}
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Reject
+                    </Button>
+                  </DialogFooter>
+                )}
+              </div>
+            )
+          })()}
         </DialogContent>
       </Dialog>
     </div>

@@ -4,7 +4,7 @@ import {
   dashboardStats,
   todaySchedule,
   priorityRequests,
-  mostRequestedServices,
+  mostRequestedServicesByPeriod,
   peakBookingMonths,
   recentActivities,
 } from "@/lib/mock-data"
@@ -37,6 +37,7 @@ import {
   XCircle,
   Award,
 } from "lucide-react"
+import { useState, useEffect } from "react"
 import {
   BarChart,
   Bar,
@@ -67,6 +68,94 @@ const bookingsChartConfig: ChartConfig = {
     label: "Bookings",
     color: "#D4AD63",
   },
+}
+
+// Shared period state for Most Requested Services
+type Period = "weekly" | "monthly" | "yearly"
+let sharedPeriod: Period = "monthly"
+const periodListeners: Set<() => void> = new Set()
+
+function setSharedPeriod(p: Period) {
+  sharedPeriod = p
+  periodListeners.forEach((l) => l())
+}
+
+function useSharedPeriod() {
+  const [period, setPeriod] = useState<Period>(sharedPeriod)
+  useEffect(() => {
+    const listener = () => setPeriod(sharedPeriod)
+    periodListeners.add(listener)
+    return () => {
+      periodListeners.delete(listener)
+    }
+  }, [])
+  return period
+}
+
+function MostRequestedPeriodToggle() {
+  const period = useSharedPeriod()
+  const periods: { key: Period; label: string }[] = [
+    { key: "weekly", label: "Weekly" },
+    { key: "monthly", label: "Monthly" },
+    { key: "yearly", label: "Yearly" },
+  ]
+  return (
+    <div className="flex rounded-lg border border-[#1B2A4A]/15 overflow-hidden">
+      {periods.map((p) => (
+        <button
+          key={p.key}
+          onClick={() => setSharedPeriod(p.key)}
+          className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+            period === p.key
+              ? "bg-[#1B2A4A] text-white"
+              : "bg-white text-[#1B2A4A] hover:bg-[#1B2A4A]/5"
+          }`}
+        >
+          {p.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function MostRequestedChart() {
+  const period = useSharedPeriod()
+  const data = mostRequestedServicesByPeriod[period]
+  return (
+    <ChartContainer config={servicesChartConfig} className="h-[300px] w-full">
+      <BarChart
+        data={data}
+        layout="vertical"
+        margin={{ top: 5, right: 50, left: 10, bottom: 5 }}
+        barCategoryGap="20%"
+      >
+        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1B2A4A08" />
+        <XAxis type="number" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+        <YAxis
+          type="category"
+          dataKey="name"
+          tick={{ fontSize: 12, fill: "#1B2A4A" }}
+          width={140}
+          tickLine={false}
+          axisLine={false}
+        />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <Bar
+          dataKey="count"
+          fill="#1B2A4A"
+          radius={[0, 6, 6, 0]}
+          barSize={22}
+          label={{
+            position: "right",
+            fontSize: 11,
+            fill: "#1B2A4A",
+            fontWeight: 600,
+            formatter: (value: number) => value,
+          }}
+        />
+      </BarChart>
+    </ChartContainer>
+  )
 }
 
 // Status badge color mapping
@@ -284,33 +373,14 @@ export function DashboardPage() {
                 <CardTitle className="text-lg text-[#1B2A4A]">Most Requested Services</CardTitle>
                 <CardDescription>Service distribution overview</CardDescription>
               </div>
-              <BookOpen className="h-5 w-5 text-[#D4AD63]" />
+              <div className="flex items-center gap-2">
+                <MostRequestedPeriodToggle />
+                <BookOpen className="h-5 w-5 text-[#D4AD63]" />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <ChartContainer config={servicesChartConfig} className="h-[320px] w-full">
-              <BarChart
-                data={mostRequestedServices}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 12 }}
-                  width={95}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="count"
-                  fill="#1B2A4A"
-                  radius={[0, 4, 4, 0]}
-                  barSize={24}
-                />
-              </BarChart>
-            </ChartContainer>
+            <MostRequestedChart />
           </CardContent>
         </Card>
       </div>
@@ -406,106 +476,51 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      {/* Recent Activities + Service Breakdown */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Recent Activities */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg text-[#1B2A4A]">Recent Activities</CardTitle>
-                <CardDescription>Latest actions and updates</CardDescription>
-              </div>
-              <FileText className="h-5 w-5 text-[#D4AD63]" />
+      {/* Recent Activities */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg text-[#1B2A4A]">Recent Activities</CardTitle>
+              <CardDescription>Latest actions and updates</CardDescription>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-              <div className="max-h-96 overflow-y-auto no-scrollbar">
-              <div className="space-y-1">
-                {recentActivities.map((activity, index) => {
-                  const isLast = index === recentActivities.length - 1
-                  return (
-                    <div key={activity.id} className="flex gap-3">
-                      {/* Timeline column */}
-                      <div className="flex flex-col items-center shrink-0 w-9">
-                        <div className="h-9 w-9 rounded-full bg-white border-2 border-[#1B2A4A]/15 flex items-center justify-center shrink-0">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        {!isLast && (
-                          <div className="w-px flex-1 bg-[#1B2A4A]/10 my-1" />
-                        )}
-                      </div>
-                      {/* Content column */}
-                      <div className="flex-1 min-w-0 overflow-hidden pb-3">
-                        <p className="text-sm font-medium text-[#1B2A4A] truncate">
-                          {activity.action}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 whitespace-nowrap">
-                          <span className="font-medium truncate">{activity.user}</span>
-                          <span className="text-muted-foreground/40">•</span>
-                          <span className="truncate">{activity.time}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              </div>
-          </CardContent>
-        </Card>
-
-        {/* Service Breakdown Visual List */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg text-[#1B2A4A]">Service Breakdown</CardTitle>
-                <CardDescription>Request distribution by sacrament type</CardDescription>
-              </div>
-              <BookOpen className="h-5 w-5 text-[#D4AD63]" />
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              {mostRequestedServices.map((service, index) => {
-                const colors = [
-                  "bg-[#1B2A4A]",
-                  "bg-[#D4AD63]",
-                  "bg-[#1B2A4A]/70",
-                  "bg-[#D4AD63]/70",
-                  "bg-[#1B2A4A]/50",
-                  "bg-[#D4AD63]/50",
-                ]
+            <FileText className="h-5 w-5 text-[#D4AD63]" />
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+            <div className="max-h-96 overflow-y-auto no-scrollbar">
+            <div className="space-y-1">
+              {recentActivities.map((activity, index) => {
+                const isLast = index === recentActivities.length - 1
                 return (
-                  <div key={service.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-[#1B2A4A]">
-                          {service.name}
-                        </span>
+                  <div key={activity.id} className="flex gap-3">
+                    {/* Timeline column */}
+                    <div className="flex flex-col items-center shrink-0 w-9">
+                      <div className="h-9 w-9 rounded-full bg-white border-2 border-[#1B2A4A]/15 flex items-center justify-center shrink-0">
+                        {getActivityIcon(activity.type)}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#1B2A4A]">
-                          {service.count}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          ({service.percentage}%)
-                        </span>
-                      </div>
+                      {!isLast && (
+                        <div className="w-px flex-1 bg-[#1B2A4A]/10 my-1" />
+                      )}
                     </div>
-                    <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${colors[index % colors.length]} transition-all duration-500`}
-                        style={{ width: `${service.percentage}%` }}
-                      />
+                    {/* Content column */}
+                    <div className="flex-1 min-w-0 overflow-hidden pb-3">
+                      <p className="text-sm font-medium text-[#1B2A4A] truncate">
+                        {activity.action}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 whitespace-nowrap">
+                        <span className="font-medium truncate">{activity.user}</span>
+                        <span className="text-muted-foreground/40">•</span>
+                        <span className="truncate">{activity.time}</span>
+                      </div>
                     </div>
                   </div>
                 )
               })}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

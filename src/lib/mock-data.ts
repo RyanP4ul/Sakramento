@@ -45,6 +45,33 @@ export const mostRequestedServices = [
   { name: "House Blessing", count: 62, percentage: 4.9 },
 ]
 
+export const mostRequestedServicesByPeriod = {
+  weekly: [
+    { name: "Baptism", count: 12, percentage: 33.3 },
+    { name: "Wedding", count: 8, percentage: 22.2 },
+    { name: "Funeral Mass", count: 6, percentage: 16.7 },
+    { name: "Confirmation", count: 4, percentage: 11.1 },
+    { name: "Anointing of the Sick", count: 3, percentage: 8.3 },
+    { name: "House Blessing", count: 3, percentage: 8.3 },
+  ],
+  monthly: [
+    { name: "Baptism", count: 45, percentage: 35.7 },
+    { name: "Wedding", count: 32, percentage: 25.4 },
+    { name: "Funeral Mass", count: 20, percentage: 15.9 },
+    { name: "Confirmation", count: 14, percentage: 11.1 },
+    { name: "Anointing of the Sick", count: 9, percentage: 7.1 },
+    { name: "House Blessing", count: 6, percentage: 4.8 },
+  ],
+  yearly: [
+    { name: "Baptism", count: 456, percentage: 36.5 },
+    { name: "Wedding", count: 312, percentage: 25.0 },
+    { name: "Funeral Mass", count: 198, percentage: 15.9 },
+    { name: "Confirmation", count: 142, percentage: 11.4 },
+    { name: "Anointing of the Sick", count: 78, percentage: 6.3 },
+    { name: "House Blessing", count: 62, percentage: 4.9 },
+  ],
+}
+
 export const peakBookingMonths = [
   { month: "Jan", bookings: 85 },
   { month: "Feb", bookings: 72 },
@@ -175,6 +202,8 @@ export interface RequirementCheckItem {
   name: string
   checked: boolean
   hasFile: boolean
+  required: boolean
+  category: string
 }
 
 export interface VerificationRecord {
@@ -187,99 +216,137 @@ export interface VerificationRecord {
   notes: string
 }
 
+// Service types that require verification
+export const serviceTypesRequiringVerification: ServiceType[] = ["Baptism", "Wedding"]
+
+// Requirement templates per service type
+export const requirementTemplates: Record<string, RequirementCheckItem[]> = {
+  Baptism: [
+    { id: 1, name: "Child Birth Certificate", checked: false, hasFile: false, required: true, category: "Requirements" },
+    { id: 2, name: "Parent's Marriage Contract", checked: false, hasFile: false, required: false, category: "Requirements" },
+  ],
+  Wedding: [
+    { id: 1, name: "Marriage License", checked: false, hasFile: false, required: true, category: "Requirements" },
+    { id: 2, name: "Certificate of No Marriage (CENOMAR)", checked: false, hasFile: false, required: true, category: "Requirements" },
+    { id: 3, name: "Baptismal Certificate", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+    { id: 4, name: "Confirmation Certificate", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+    { id: 5, name: "Wedding Banns / Wedding Permission", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+    { id: 6, name: "Pre-Cana Seminar Certificate", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
+    { id: 7, name: "Certificate of Confession", checked: false, hasFile: false, required: false, category: "Seminar & Spiritual Preparation" },
+    { id: 8, name: "DULOG / Meeting with the Parish Priest", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
+  ],
+}
+
 export const verificationRecords: VerificationRecord[] = [
   {
     id: 1, applicant: "Maria Santos", serviceType: "Baptism", submittedDate: "2025-03-10", status: "Pending",
     requirements: [
-      { id: 1, name: "Birth Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Parent's Marriage Certificate", checked: true, hasFile: true },
-      { id: 3, name: "Godparent's Baptismal Certificate", checked: false, hasFile: false },
-      { id: 4, name: "Permission Letter", checked: true, hasFile: true },
+      { id: 1, name: "Child Birth Certificate", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 2, name: "Parent's Marriage Contract", checked: false, hasFile: false, required: false, category: "Requirements" },
     ],
     notes: ""
   },
   {
     id: 2, applicant: "Juan Cruz", serviceType: "Wedding", submittedDate: "2025-03-08", status: "Verified",
     requirements: [
-      { id: 1, name: "Baptismal Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Confirmation Certificate", checked: true, hasFile: true },
-      { id: 3, name: "Marriage License", checked: true, hasFile: true },
-      { id: 4, name: "Pre-Cana Seminar Certificate", checked: true, hasFile: true },
-      { id: 5, name: "Parent's Consent", checked: true, hasFile: true },
+      { id: 1, name: "Marriage License", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 2, name: "Certificate of No Marriage (CENOMAR)", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 3, name: "Baptismal Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 4, name: "Confirmation Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 5, name: "Wedding Banns / Wedding Permission", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 6, name: "Pre-Cana Seminar Certificate", checked: true, hasFile: true, required: true, category: "Seminar & Spiritual Preparation" },
+      { id: 7, name: "Certificate of Confession", checked: true, hasFile: true, required: false, category: "Seminar & Spiritual Preparation" },
+      { id: 8, name: "DULOG / Meeting with the Parish Priest", checked: true, hasFile: true, required: true, category: "Seminar & Spiritual Preparation" },
     ],
     notes: "All requirements complete and verified."
   },
   {
-    id: 3, applicant: "Pedro Reyes", serviceType: "Funeral Mass", submittedDate: "2025-03-15", status: "Incomplete",
+    id: 3, applicant: "Elena Villanueva", serviceType: "Baptism", submittedDate: "2025-03-07", status: "Verified",
     requirements: [
-      { id: 1, name: "Death Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Parish Registration", checked: false, hasFile: false },
-      { id: 3, name: "Burial Permit", checked: false, hasFile: false },
-    ],
-    notes: "Missing parish registration and burial permit."
-  },
-  {
-    id: 4, applicant: "Luisa Garcia", serviceType: "Anointing of the Sick", submittedDate: "2025-03-12", status: "Rejected",
-    requirements: [
-      { id: 1, name: "Medical Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Parish ID", checked: true, hasFile: true },
-      { id: 3, name: "Family Request Letter", checked: false, hasFile: false },
-    ],
-    notes: "Invalid medical certificate. Please submit updated document."
-  },
-  {
-    id: 5, applicant: "Ricardo Gomez", serviceType: "House Blessing & Other", submittedDate: "2025-03-11", status: "Verified",
-    requirements: [
-      { id: 1, name: "Valid ID", checked: true, hasFile: true },
-      { id: 2, name: "House Ownership Document", checked: true, hasFile: true },
-    ],
-    notes: "All requirements verified."
-  },
-  {
-    id: 6, applicant: "Carmen Diaz", serviceType: "Confirmation", submittedDate: "2025-03-09", status: "Pending",
-    requirements: [
-      { id: 1, name: "Baptismal Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Confirmation Registration Form", checked: true, hasFile: true },
-      { id: 3, name: "Sponsor's Certificate", checked: false, hasFile: false },
-    ],
-    notes: ""
-  },
-  {
-    id: 7, applicant: "Elena Villanueva", serviceType: "Baptism", submittedDate: "2025-03-07", status: "Verified",
-    requirements: [
-      { id: 1, name: "Birth Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Parent's Marriage Certificate", checked: true, hasFile: true },
-      { id: 3, name: "Godparent's Baptismal Certificate", checked: true, hasFile: true },
+      { id: 1, name: "Child Birth Certificate", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 2, name: "Parent's Marriage Contract", checked: true, hasFile: true, required: false, category: "Requirements" },
     ],
     notes: "Complete and verified."
   },
   {
-    id: 8, applicant: "Antonio Morales", serviceType: "Wedding", submittedDate: "2025-03-06", status: "Incomplete",
+    id: 4, applicant: "Antonio Morales", serviceType: "Wedding", submittedDate: "2025-03-06", status: "Incomplete",
     requirements: [
-      { id: 1, name: "Baptismal Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Confirmation Certificate", checked: true, hasFile: true },
-      { id: 3, name: "Marriage License", checked: false, hasFile: false },
-      { id: 4, name: "Pre-Cana Seminar Certificate", checked: false, hasFile: false },
+      { id: 1, name: "Marriage License", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 2, name: "Certificate of No Marriage (CENOMAR)", checked: false, hasFile: false, required: true, category: "Requirements" },
+      { id: 3, name: "Baptismal Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 4, name: "Confirmation Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 5, name: "Wedding Banns / Wedding Permission", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+      { id: 6, name: "Pre-Cana Seminar Certificate", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
+      { id: 7, name: "Certificate of Confession", checked: false, hasFile: false, required: false, category: "Seminar & Spiritual Preparation" },
+      { id: 8, name: "DULOG / Meeting with the Parish Priest", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
     ],
-    notes: "Missing marriage license and Pre-Cana certificate."
+    notes: "Missing CENOMAR, wedding banns, Pre-Cana seminar, and DULOG."
   },
   {
-    id: 9, applicant: "Grace Lim", serviceType: "Baptism", submittedDate: "2025-03-14", status: "Pending",
+    id: 5, applicant: "Grace Lim", serviceType: "Baptism", submittedDate: "2025-03-14", status: "Pending",
     requirements: [
-      { id: 1, name: "Birth Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Parent's Marriage Certificate", checked: true, hasFile: true },
-      { id: 3, name: "Godparent's Baptismal Certificate", checked: true, hasFile: true },
+      { id: 1, name: "Child Birth Certificate", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 2, name: "Parent's Marriage Contract", checked: false, hasFile: false, required: false, category: "Requirements" },
     ],
     notes: ""
   },
   {
-    id: 10, applicant: "Benigno Aquino", serviceType: "Confirmation", submittedDate: "2025-03-13", status: "Pending",
+    id: 6, applicant: "Jose Ramos", serviceType: "Wedding", submittedDate: "2025-03-12", status: "Pending",
     requirements: [
-      { id: 1, name: "Baptismal Certificate", checked: true, hasFile: true },
-      { id: 2, name: "Confirmation Registration Form", checked: false, hasFile: false },
-      { id: 3, name: "Sponsor's Certificate", checked: false, hasFile: false },
+      { id: 1, name: "Marriage License", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 2, name: "Certificate of No Marriage (CENOMAR)", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 3, name: "Baptismal Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 4, name: "Confirmation Certificate", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+      { id: 5, name: "Wedding Banns / Wedding Permission", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 6, name: "Pre-Cana Seminar Certificate", checked: true, hasFile: true, required: true, category: "Seminar & Spiritual Preparation" },
+      { id: 7, name: "Certificate of Confession", checked: false, hasFile: false, required: false, category: "Seminar & Spiritual Preparation" },
+      { id: 8, name: "DULOG / Meeting with the Parish Priest", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
     ],
     notes: ""
+  },
+  {
+    id: 7, applicant: "Carla Mendoza", serviceType: "Baptism", submittedDate: "2025-03-18", status: "Incomplete",
+    requirements: [
+      { id: 1, name: "Child Birth Certificate", checked: false, hasFile: false, required: true, category: "Requirements" },
+      { id: 2, name: "Parent's Marriage Contract", checked: true, hasFile: true, required: false, category: "Requirements" },
+    ],
+    notes: "Missing child birth certificate - required document."
+  },
+  {
+    id: 8, applicant: "Raul Bautista", serviceType: "Wedding", submittedDate: "2025-03-20", status: "Pending",
+    requirements: [
+      { id: 1, name: "Marriage License", checked: false, hasFile: false, required: true, category: "Requirements" },
+      { id: 2, name: "Certificate of No Marriage (CENOMAR)", checked: false, hasFile: false, required: true, category: "Requirements" },
+      { id: 3, name: "Baptismal Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 4, name: "Confirmation Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 5, name: "Wedding Banns / Wedding Permission", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+      { id: 6, name: "Pre-Cana Seminar Certificate", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
+      { id: 7, name: "Certificate of Confession", checked: false, hasFile: false, required: false, category: "Seminar & Spiritual Preparation" },
+      { id: 8, name: "DULOG / Meeting with the Parish Priest", checked: true, hasFile: true, required: true, category: "Seminar & Spiritual Preparation" },
+    ],
+    notes: ""
+  },
+  {
+    id: 9, applicant: "Andres Reyes", serviceType: "Baptism", submittedDate: "2025-03-22", status: "Verified",
+    requirements: [
+      { id: 1, name: "Child Birth Certificate", checked: true, hasFile: true, required: true, category: "Requirements" },
+      { id: 2, name: "Parent's Marriage Contract", checked: true, hasFile: true, required: false, category: "Requirements" },
+    ],
+    notes: "All required documents verified."
+  },
+  {
+    id: 10, applicant: "Miguel Torres", serviceType: "Wedding", submittedDate: "2025-03-25", status: "Rejected",
+    requirements: [
+      { id: 1, name: "Marriage License", checked: false, hasFile: false, required: true, category: "Requirements" },
+      { id: 2, name: "Certificate of No Marriage (CENOMAR)", checked: false, hasFile: false, required: true, category: "Requirements" },
+      { id: 3, name: "Baptismal Certificate", checked: true, hasFile: true, required: true, category: "Church Sacramental Requirements" },
+      { id: 4, name: "Confirmation Certificate", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+      { id: 5, name: "Wedding Banns / Wedding Permission", checked: false, hasFile: false, required: true, category: "Church Sacramental Requirements" },
+      { id: 6, name: "Pre-Cana Seminar Certificate", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
+      { id: 7, name: "Certificate of Confession", checked: false, hasFile: false, required: false, category: "Seminar & Spiritual Preparation" },
+      { id: 8, name: "DULOG / Meeting with the Parish Priest", checked: false, hasFile: false, required: true, category: "Seminar & Spiritual Preparation" },
+    ],
+    notes: "Multiple required documents missing. Please resubmit when complete."
   },
 ]
 
@@ -300,29 +367,76 @@ export interface SakramentalRecord {
   spouse?: string
   godparents?: string
   details: string
+  // Baptism-specific fields
+  birthDate?: string
+  birthPlace?: string
+  bookNo?: string
+  pageNo?: string
+  lineNo?: string
+  // Wedding-specific fields
+  husbandFirstName?: string
+  husbandMiddleName?: string
+  husbandLastName?: string
+  husbandBirthDate?: string
+  husbandAge?: number
+  husbandBirthPlace?: string
+  husbandCitizenship?: string
+  husbandResidence?: string
+  husbandReligion?: string
+  husbandCivilStatus?: string
+  husbandFatherName?: string
+  husbandFatherCitizenship?: string
+  husbandMotherMaidenName?: string
+  husbandMotherCitizenship?: string
+  wifeFirstName?: string
+  wifeMiddleName?: string
+  wifeLastName?: string
+  wifeBirthDate?: string
+  wifeAge?: number
+  wifeBirthPlace?: string
+  wifeCitizenship?: string
+  wifeResidence?: string
+  wifeReligion?: string
+  wifeCivilStatus?: string
+  wifeFatherName?: string
+  wifeFatherCitizenship?: string
+  wifeMotherMaidenName?: string
+  wifeMotherCitizenship?: string
+  placeOfMarriage?: string
+  timeOfMarriage?: string
+  marriageLicenseNo?: string
+  marriageLicenseDate?: string
+  marriageLicensePlace?: string
+  registryNo?: string
+  witnesses?: string
+  solemnizingOfficerTitle?: string
 }
 
 export const sakramentalRecords: SakramentalRecord[] = [
-  { id: 1, recordNumber: "BAP-2025-001", serviceType: "Baptism", name: "Maria Santos", date: "2025-01-15", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Jose & Ana Santos", godparents: "Luis & Carmen Reyes", details: "Baptized at St. Mary's Parish" },
-  { id: 2, recordNumber: "BAP-2025-002", serviceType: "Baptism", name: "Juan Dela Cruz", date: "2025-01-20", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Pedro & Rosa Dela Cruz", godparents: "Miguel & Elena Torres", details: "Baptized at St. Mary's Parish" },
-  { id: 3, recordNumber: "WED-2025-001", serviceType: "Wedding", name: "Carlos & Maria Reyes", date: "2025-02-01", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, details: "Wedding ceremony at St. Mary's Parish" },
+  { id: 1, recordNumber: "BAP-2025-001", serviceType: "Baptism", name: "Maria Santos", date: "2025-01-15", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Jose & Ana Santos", godparents: "Luis & Carmen Reyes", details: "Baptized at St. Mary's Parish", birthDate: "2024-11-27", birthPlace: "Malolos, Bulacan", bookNo: "9-789", pageNo: "65", lineNo: "03" },
+  { id: 2, recordNumber: "BAP-2025-002", serviceType: "Baptism", name: "Juan Dela Cruz", date: "2025-01-20", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Pedro & Rosa Dela Cruz", godparents: "Miguel & Elena Torres", details: "Baptized at St. Mary's Parish", birthDate: "2024-09-10", birthPlace: "Balagtas, Bulacan", bookNo: "9-789", pageNo: "66", lineNo: "01" },
+  { id: 3, recordNumber: "WED-2025-001", serviceType: "Wedding", name: "Carlos & Maria Reyes", date: "2025-02-01", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, details: "Wedding ceremony at St. Mary's Parish", husbandFirstName: "Carlos", husbandMiddleName: "Santos", husbandLastName: "Reyes", husbandBirthDate: "1995-03-15", husbandAge: 29, husbandBirthPlace: "Balagtas, Bulacan", husbandCitizenship: "Filipino", husbandResidence: "Borol 2nd, Balagtas, Bulacan", husbandReligion: "Catholic", husbandCivilStatus: "Single", husbandFatherName: "Antonio Reyes", husbandFatherCitizenship: "Filipino", husbandMotherMaidenName: "Maria Santos", husbandMotherCitizenship: "Filipino", wifeFirstName: "Maria", wifeMiddleName: "Dela", wifeLastName: "Cruz", wifeBirthDate: "1997-07-22", wifeAge: 27, wifeBirthPlace: "Malolos, Bulacan", wifeCitizenship: "Filipino", wifeResidence: "Borol 2nd, Balagtas, Bulacan", wifeReligion: "Catholic", wifeCivilStatus: "Single", wifeFatherName: "Pedro Dela Cruz", wifeFatherCitizenship: "Filipino", wifeMotherMaidenName: "Rosa Torres", wifeMotherCitizenship: "Filipino", placeOfMarriage: "St. Peter the Apostle Parish, Borol 2nd, Balagtas, Bulacan", timeOfMarriage: "10:00 am", marriageLicenseNo: "0227755", marriageLicenseDate: "2025-01-15", marriageLicensePlace: "Balagtas, Bulacan", registryNo: "2025-001", witnesses: "Luis Ramos, Carmen Diaz, Roberto Garcia, Ana Villanueva", solemnizingOfficerTitle: "Parish Priest" },
   { id: 4, recordNumber: "CONF-2025-001", serviceType: "Confirmation", name: "Ana Garcia", date: "2025-02-10", minister: "Bishop Luis Morales", status: "Active", hasCertificate: true, details: "Confirmed at St. Mary's Parish" },
-  { id: 5, recordNumber: "BAP-2025-003", serviceType: "Baptism", name: "Pedro Villanueva", date: "2025-02-15", minister: "Fr. Roberto Gomez", status: "Active", hasCertificate: false, parents: "Antonio & Carmen Villanueva", godparents: "Ricardo & Sofia Lim", details: "Baptized at St. Mary's Parish" },
-  { id: 6, recordNumber: "WED-2025-002", serviceType: "Wedding", name: "Miguel & Rosa Torres", date: "2025-02-20", minister: "Fr. Roberto Gomez", status: "Active", hasCertificate: true, details: "Wedding ceremony at St. Mary's Parish" },
+  { id: 5, recordNumber: "BAP-2025-003", serviceType: "Baptism", name: "Pedro Villanueva", date: "2025-02-15", minister: "Fr. Roberto Gomez", status: "Active", hasCertificate: false, parents: "Antonio & Carmen Villanueva", godparents: "Ricardo & Sofia Lim", details: "Baptized at St. Mary's Parish", birthDate: "2024-12-05", birthPlace: "Bocaue, Bulacan", bookNo: "9-790", pageNo: "12", lineNo: "05" },
+  { id: 6, recordNumber: "WED-2025-002", serviceType: "Wedding", name: "Miguel & Rosa Torres", date: "2025-02-20", minister: "Fr. Roberto Gomez", status: "Active", hasCertificate: true, details: "Wedding ceremony at St. Mary's Parish", husbandFirstName: "Miguel", husbandMiddleName: "Cruz", husbandLastName: "Torres", husbandBirthDate: "1993-11-08", husbandAge: 31, husbandBirthPlace: "Bocaue, Bulacan", husbandCitizenship: "Filipino", husbandResidence: "Borol 2nd, Balagtas, Bulacan", husbandReligion: "Catholic", husbandCivilStatus: "Single", husbandFatherName: "Jose Torres", husbandFatherCitizenship: "Filipino", husbandMotherMaidenName: "Elena Ramos", husbandMotherCitizenship: "Filipino", wifeFirstName: "Rosa", wifeMiddleName: "M", wifeLastName: "Santos", wifeBirthDate: "1996-04-12", wifeAge: 28, wifeBirthPlace: "Guiguinto, Bulacan", wifeCitizenship: "Filipino", wifeResidence: "Borol 2nd, Balagtas, Bulacan", wifeReligion: "Catholic", wifeCivilStatus: "Single", wifeFatherName: "Antonio Santos", wifeFatherCitizenship: "Filipino", wifeMotherMaidenName: "Carmen Lim", wifeMotherCitizenship: "Filipino", placeOfMarriage: "St. Peter the Apostle Parish, Borol 2nd, Balagtas, Bulacan", timeOfMarriage: "02:00 pm", marriageLicenseNo: "0227800", marriageLicenseDate: "2025-02-05", marriageLicensePlace: "Balagtas, Bulacan", registryNo: "2025-002", witnesses: "Pedro Reyes, Sofia Mendoza, Luis Garcia, Carmen Diaz", solemnizingOfficerTitle: "Assistant Parish Priest" },
   { id: 7, recordNumber: "FUN-2025-001", serviceType: "Funeral Mass", name: "Elena Navarro", date: "2025-02-25", minister: "Fr. Antonio Santos", status: "Archived", hasCertificate: false, details: "Funeral mass at St. Mary's Parish" },
-  { id: 8, recordNumber: "BAP-2025-004", serviceType: "Baptism", name: "Carmen Diaz", date: "2025-03-01", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Luis & Ana Diaz", godparents: "Jose & Maria Ramos", details: "Baptized at St. Mary's Parish" },
+  { id: 8, recordNumber: "BAP-2025-004", serviceType: "Baptism", name: "Carmen Diaz", date: "2025-03-01", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Luis & Ana Diaz", godparents: "Jose & Maria Ramos", details: "Baptized at St. Mary's Parish", birthDate: "2025-01-15", birthPlace: "Guiguinto, Bulacan", bookNo: "9-790", pageNo: "15", lineNo: "02" },
   { id: 9, recordNumber: "CONF-2025-002", serviceType: "Confirmation", name: "Ricardo Gomez", date: "2025-03-05", minister: "Bishop Luis Morales", status: "Active", hasCertificate: true, details: "Confirmed at St. Mary's Parish" },
-  { id: 10, recordNumber: "WED-2025-003", serviceType: "Wedding", name: "Benigno & Grace Aquino", date: "2025-03-10", minister: "Fr. Roberto Gomez", status: "Active", hasCertificate: false, details: "Wedding ceremony at St. Mary's Parish" },
-  { id: 11, recordNumber: "BAP-2025-005", serviceType: "Baptism", name: "Sofia Gonzales", date: "2025-03-12", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Raul & Lorna Gonzales", godparents: "Antonio & Elena Morales", details: "Baptized at St. Mary's Parish" },
+  { id: 10, recordNumber: "WED-2025-003", serviceType: "Wedding", name: "Benigno & Grace Aquino", date: "2025-03-10", minister: "Fr. Roberto Gomez", status: "Active", hasCertificate: false, details: "Wedding ceremony at St. Mary's Parish", husbandFirstName: "Benigno", husbandMiddleName: "S", husbandLastName: "Aquino", husbandBirthDate: "1990-06-20", husbandAge: 34, husbandBirthPlace: "Meycauayan, Bulacan", husbandCitizenship: "Filipino", husbandResidence: "Borol 2nd, Balagtas, Bulacan", husbandReligion: "Catholic", husbandCivilStatus: "Single", husbandFatherName: "Ricardo Aquino", husbandFatherCitizenship: "Filipino", husbandMotherMaidenName: "Lorna Fernando", husbandMotherCitizenship: "Filipino", wifeFirstName: "Grace", wifeMiddleName: "R", wifeLastName: "Mendoza", wifeBirthDate: "1992-09-03", wifeAge: 32, wifeBirthPlace: "San Jose del Monte, Bulacan", wifeCitizenship: "Filipino", wifeResidence: "Borol 2nd, Balagtas, Bulacan", wifeReligion: "Catholic", wifeCivilStatus: "Single", wifeFatherName: "Luis Mendoza", wifeFatherCitizenship: "Filipino", wifeMotherMaidenName: "Ana Ponce", wifeMotherCitizenship: "Filipino", placeOfMarriage: "St. Peter the Apostle Parish, Borol 2nd, Balagtas, Bulacan", timeOfMarriage: "10:00 am", marriageLicenseNo: "0227850", marriageLicenseDate: "2025-02-20", marriageLicensePlace: "Balagtas, Bulacan", registryNo: "2025-003", witnesses: "Antonio Morales, Elena Reyes, Pedro Santos, Carmen Lim", solemnizingOfficerTitle: "Assistant Parish Priest" },
+  { id: 11, recordNumber: "BAP-2025-005", serviceType: "Baptism", name: "Sofia Gonzales", date: "2025-03-12", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, parents: "Raul & Lorna Gonzales", godparents: "Antonio & Elena Morales", details: "Baptized at St. Mary's Parish", birthDate: "2025-02-20", birthPlace: "San Jose del Monte, Bulacan", bookNo: "9-790", pageNo: "22", lineNo: "07" },
   { id: 12, recordNumber: "FUN-2025-002", serviceType: "Funeral Mass", name: "Jose Reyes", date: "2025-03-14", minister: "Fr. Roberto Gomez", status: "Active", hasCertificate: false, details: "Funeral mass at St. Mary's Parish" },
-  { id: 13, recordNumber: "BAP-2025-006", serviceType: "Baptism", name: "Luis Mendoza", date: "2025-03-15", minister: "Fr. Antonio Santos", status: "Pending", hasCertificate: false, parents: "Carla & Andres Mendoza", godparents: "Pedro & Rosa Reyes", details: "Baptized at St. Mary's Parish" },
-  { id: 14, recordNumber: "WED-2025-004", serviceType: "Wedding", name: "Miguel & Ana Bautista", date: "2025-03-18", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, details: "Wedding ceremony at St. Mary's Parish" },
+  { id: 13, recordNumber: "BAP-2025-006", serviceType: "Baptism", name: "Luis Mendoza", date: "2025-03-15", minister: "Fr. Antonio Santos", status: "Pending", hasCertificate: false, parents: "Carla & Andres Mendoza", godparents: "Pedro & Rosa Reyes", details: "Baptized at St. Mary's Parish", birthDate: "2025-02-28", birthPlace: "Meycauayan, Bulacan", bookNo: "9-791", pageNo: "03", lineNo: "01" },
+  { id: 14, recordNumber: "WED-2025-004", serviceType: "Wedding", name: "Miguel & Ana Bautista", date: "2025-03-18", minister: "Fr. Antonio Santos", status: "Active", hasCertificate: true, details: "Wedding ceremony at St. Mary's Parish", husbandFirstName: "Miguel", husbandMiddleName: "D", husbandLastName: "Bautista", husbandBirthDate: "1994-01-10", husbandAge: 31, husbandBirthPlace: "Malolos, Bulacan", husbandCitizenship: "Filipino", husbandResidence: "Borol 2nd, Balagtas, Bulacan", husbandReligion: "Catholic", husbandCivilStatus: "Single", husbandFatherName: "Carlos Bautista", husbandFatherCitizenship: "Filipino", husbandMotherMaidenName: "Dolores Cruz", husbandMotherCitizenship: "Filipino", wifeFirstName: "Ana", wifeMiddleName: "L", wifeLastName: "Gonzales", wifeBirthDate: "1996-05-25", wifeAge: 28, wifeBirthPlace: "Balagtas, Bulacan", wifeCitizenship: "Filipino", wifeResidence: "Borol 2nd, Balagtas, Bulacan", wifeReligion: "Catholic", wifeCivilStatus: "Single", wifeFatherName: "Raul Gonzales", wifeFatherCitizenship: "Filipino", wifeMotherMaidenName: "Lorna Morales", wifeMotherCitizenship: "Filipino", placeOfMarriage: "St. Peter the Apostle Parish, Borol 2nd, Balagtas, Bulacan", timeOfMarriage: "02:00 pm", marriageLicenseNo: "0227900", marriageLicenseDate: "2025-03-05", marriageLicensePlace: "Balagtas, Bulacan", registryNo: "2025-004", witnesses: "Luis Mendoza, Carmen Diaz, Roberto Reyes, Sofia Santos", solemnizingOfficerTitle: "Parish Priest" },
   { id: 15, recordNumber: "CONF-2025-003", serviceType: "Confirmation", name: "Carla Fernandez", date: "2025-03-20", minister: "Bishop Luis Morales", status: "Active", hasCertificate: true, details: "Confirmed at St. Mary's Parish" },
 ]
 
 // ============ PRIEST MANAGEMENT ============
 export type PriestStatus = "Active" | "On Leave" | "Retired"
 export type PriestAvailability = "Available" | "Busy" | "On Leave"
+
+export type Weekday = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday"
+
+export const weekdays: Weekday[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 export interface Priest {
   id: number
@@ -332,24 +446,25 @@ export interface Priest {
   availability: PriestAvailability
   servicePeriod: string
   assignedServices: string[]
+  preferredWeekdays: Weekday[]
   email: string
   phone: string
   ordinationDate: string
 }
 
 export const priests: Priest[] = [
-  { id: 1, name: "Fr. Antonio Santos", title: "Parish Priest", status: "Active", availability: "Available", servicePeriod: "2020 - Present", assignedServices: ["Baptism", "Wedding", "Funeral Mass"], email: "fr.santos@sakramentohub.com", phone: "+63 917 111 1111", ordinationDate: "1995-06-15" },
-  { id: 2, name: "Fr. Roberto Gomez", title: "Assistant Parish Priest", status: "Active", availability: "Available", servicePeriod: "2022 - Present", assignedServices: ["Baptism", "Anointing of the Sick", "House Blessing & Other"], email: "fr.gomez@sakramentohub.com", phone: "+63 928 222 2222", ordinationDate: "2005-03-20" },
-  { id: 3, name: "Bishop Luis Morales", title: "Auxiliary Bishop", status: "Active", availability: "Busy", servicePeriod: "2018 - Present", assignedServices: ["Confirmation", "Wedding"], email: "bp.morales@sakramentohub.com", phone: "+63 935 333 3333", ordinationDate: "1988-12-01" },
-  { id: 4, name: "Fr. Carlos Reyes", title: "Visiting Priest", status: "Active", availability: "Available", servicePeriod: "2024 - Present", assignedServices: ["Funeral Mass", "Anointing of the Sick"], email: "fr.reyes@sakramentohub.com", phone: "+63 906 444 4444", ordinationDate: "2010-09-12" },
-  { id: 5, name: "Fr. Miguel Torres", title: "Parish Priest", status: "On Leave", availability: "On Leave", servicePeriod: "2015 - Present", assignedServices: ["Baptism", "House Blessing & Other"], email: "fr.torres@sakramentohub.com", phone: "+63 917 555 5555", ordinationDate: "2000-05-30" },
-  { id: 6, name: "Fr. Andres Navarro", title: "Retired Priest", status: "Retired", availability: "Available", servicePeriod: "1990 - 2023", assignedServices: [], email: "fr.navarro@sakramentohub.com", phone: "+63 928 666 6666", ordinationDate: "1975-08-15" },
-  { id: 7, name: "Fr. Jose Ramos", title: "Associate Priest", status: "Active", availability: "Available", servicePeriod: "2023 - Present", assignedServices: ["Baptism", "Wedding", "Funeral Mass"], email: "fr.ramos@sakramentohub.com", phone: "+63 935 777 7777", ordinationDate: "2015-11-22" },
-  { id: 8, name: "Fr. Raul Bautista", title: "Chaplain", status: "Active", availability: "Busy", servicePeriod: "2021 - Present", assignedServices: ["Anointing of the Sick", "House Blessing & Other"], email: "fr.bautista@sakramentohub.com", phone: "+63 906 888 8888", ordinationDate: "2008-04-10" },
+  { id: 1, name: "Fr. Antonio Santos", title: "Parish Priest", status: "Active", availability: "Available", servicePeriod: "2020 - Present", assignedServices: ["Baptism", "Wedding", "Funeral Mass"], preferredWeekdays: ["Monday", "Wednesday", "Friday", "Sunday"], email: "fr.santos@sakramentohub.com", phone: "+63 917 111 1111", ordinationDate: "1995-06-15" },
+  { id: 2, name: "Fr. Roberto Gomez", title: "Assistant Parish Priest", status: "Active", availability: "Available", servicePeriod: "2022 - Present", assignedServices: ["Baptism", "Anointing of the Sick", "House Blessing & Other"], preferredWeekdays: ["Tuesday", "Thursday", "Saturday"], email: "fr.gomez@sakramentohub.com", phone: "+63 928 222 2222", ordinationDate: "2005-03-20" },
+  { id: 3, name: "Bishop Luis Morales", title: "Auxiliary Bishop", status: "Active", availability: "Busy", servicePeriod: "2018 - Present", assignedServices: ["Confirmation", "Wedding"], preferredWeekdays: ["Saturday", "Sunday"], email: "bp.morales@sakramentohub.com", phone: "+63 935 333 3333", ordinationDate: "1988-12-01" },
+  { id: 4, name: "Fr. Carlos Reyes", title: "Visiting Priest", status: "Active", availability: "Available", servicePeriod: "2024 - Present", assignedServices: ["Funeral Mass", "Anointing of the Sick"], preferredWeekdays: ["Monday", "Wednesday", "Friday"], email: "fr.reyes@sakramentohub.com", phone: "+63 906 444 4444", ordinationDate: "2010-09-12" },
+  { id: 5, name: "Fr. Miguel Torres", title: "Parish Priest", status: "On Leave", availability: "On Leave", servicePeriod: "2015 - Present", assignedServices: ["Baptism", "House Blessing & Other"], preferredWeekdays: ["Tuesday", "Thursday"], email: "fr.torres@sakramentohub.com", phone: "+63 917 555 5555", ordinationDate: "2000-05-30" },
+  { id: 6, name: "Fr. Andres Navarro", title: "Retired Priest", status: "Retired", availability: "Available", servicePeriod: "1990 - 2023", assignedServices: [], preferredWeekdays: ["Sunday"], email: "fr.navarro@sakramentohub.com", phone: "+63 928 666 6666", ordinationDate: "1975-08-15" },
+  { id: 7, name: "Fr. Jose Ramos", title: "Associate Priest", status: "Active", availability: "Available", servicePeriod: "2023 - Present", assignedServices: ["Baptism", "Wedding", "Funeral Mass"], preferredWeekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], email: "fr.ramos@sakramentohub.com", phone: "+63 935 777 7777", ordinationDate: "2015-11-22" },
+  { id: 8, name: "Fr. Raul Bautista", title: "Chaplain", status: "Active", availability: "Busy", servicePeriod: "2021 - Present", assignedServices: ["Anointing of the Sick", "House Blessing & Other"], preferredWeekdays: ["Wednesday", "Thursday", "Friday", "Saturday"], email: "fr.bautista@sakramentohub.com", phone: "+63 906 888 8888", ordinationDate: "2008-04-10" },
 ]
 
 // ============ USER MANAGEMENT ============
-export type UserStatus = "Active" | "Inactive" | "Locked"
+export type UserStatus = "Active" | "Inactive" | "Deactivated"
 
 export interface User {
   id: number
@@ -362,18 +477,18 @@ export interface User {
 }
 
 export const users: User[] = [
-  { id: 1, name: "Admin Maria", email: "maria@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 08:30 AM", role: "Super Admin" },
-  { id: 2, name: "Staff Pedro", email: "pedro@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 09:15 AM", role: "Staff" },
-  { id: 3, name: "Staff Rosa", email: "rosa@sakramentohub.com", status: "Active", lastLogin: "2025-03-14 04:45 PM", role: "Staff" },
-  { id: 4, name: "Admin Luis", email: "luis@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 07:00 AM", role: "Admin" },
-  { id: 5, name: "Staff Carmen", email: "carmen@sakramentohub.com", status: "Active", lastLogin: "2025-03-14 03:30 PM", role: "Staff" },
-  { id: 6, name: "Staff Ana", email: "ana@sakramentohub.com", status: "Inactive", lastLogin: "2025-02-28 10:00 AM", role: "Staff" },
-  { id: 7, name: "Admin Elena", email: "elena@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 08:00 AM", role: "Admin" },
-  { id: 8, name: "Staff Antonio", email: "antonio@sakramentohub.com", status: "Locked", lastLogin: "2025-03-10 11:30 AM", role: "Staff" },
-  { id: 9, name: "Staff Miguel", email: "miguel@sakramentohub.com", status: "Active", lastLogin: "2025-03-14 01:00 PM", role: "Staff" },
-  { id: 10, name: "Staff Grace", email: "grace@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 09:00 AM", role: "Staff" },
-  { id: 11, name: "Admin Ricardo", email: "ricardo@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 10:30 AM", role: "Admin" },
-  { id: 12, name: "Staff Benigno", email: "benigno@sakramentohub.com", status: "Inactive", lastLogin: "2025-03-01 02:15 PM", role: "Staff" },
+  { id: 1, name: "Maria Santos", email: "maria@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 08:30 AM", role: "Admin" },
+  { id: 2, name: "Pedro Reyes", email: "pedro@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 09:15 AM", role: "Admin" },
+  { id: 3, name: "Rosa Cruz", email: "rosa@sakramentohub.com", status: "Active", lastLogin: "2025-03-14 04:45 PM", role: "Admin" },
+  { id: 4, name: "Luis Garcia", email: "luis@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 07:00 AM", role: "Admin" },
+  { id: 5, name: "Carmen Dela Cruz", email: "carmen@sakramentohub.com", status: "Active", lastLogin: "2025-03-14 03:30 PM", role: "Admin" },
+  { id: 6, name: "Ana Lim", email: "ana@sakramentohub.com", status: "Inactive", lastLogin: "2025-02-28 10:00 AM", role: "Admin" },
+  { id: 7, name: "Elena Villanueva", email: "elena@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 08:00 AM", role: "Admin" },
+  { id: 8, name: "Antonio Fernandez", email: "antonio@sakramentohub.com", status: "Deactivated", lastLogin: "2025-03-10 11:30 AM", role: "Admin" },
+  { id: 9, name: "Miguel Torres", email: "miguel@sakramentohub.com", status: "Active", lastLogin: "2025-03-14 01:00 PM", role: "Admin" },
+  { id: 10, name: "Grace Mendoza", email: "grace@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 09:00 AM", role: "Admin" },
+  { id: 11, name: "Ricardo Aquino", email: "ricardo@sakramentohub.com", status: "Active", lastLogin: "2025-03-15 10:30 AM", role: "Admin" },
+  { id: 12, name: "Benigno Ramos", email: "benigno@sakramentohub.com", status: "Inactive", lastLogin: "2025-03-01 02:15 PM", role: "Admin" },
 ]
 
 // ============ AUDIT LOGS ============
@@ -394,7 +509,7 @@ export const auditLogs: AuditLog[] = [
   { id: 4, timestamp: "2025-03-15 10:00:00", user: "Staff Rosa", action: "Generate Certificate", category: "Reports", details: "Generated baptism certificate for Maria Santos", ip: "192.168.1.102" },
   { id: 5, timestamp: "2025-03-15 09:45:00", user: "Admin Luis", action: "Verify Requirements", category: "Verification", details: "Verified requirements for Juan Cruz", ip: "192.168.1.103" },
   { id: 6, timestamp: "2025-03-15 09:30:00", user: "Staff Carmen", action: "Add Priest", category: "Priest Management", details: "Added Fr. Jose Ramos", ip: "192.168.1.104" },
-  { id: 7, timestamp: "2025-03-15 09:15:00", user: "Admin Maria", action: "Lock User", category: "User Management", details: "Locked account: antonio@sakramentohub.com", ip: "192.168.1.100" },
+  { id: 7, timestamp: "2025-03-15 09:15:00", user: "Admin Maria", action: "Deactivate User", category: "User Management", details: "Deactivated account: antonio@sakramentohub.com", ip: "192.168.1.100" },
   { id: 8, timestamp: "2025-03-15 09:00:00", user: "Staff Ana", action: "Delete Record", category: "Sacramental Records", details: "Soft deleted record FUN-2024-012", ip: "192.168.1.105" },
   { id: 9, timestamp: "2025-03-15 08:45:00", user: "Admin Elena", action: "Update Settings", category: "Settings", details: "Updated notification settings", ip: "192.168.1.106" },
   { id: 10, timestamp: "2025-03-15 08:30:00", user: "Staff Pedro", action: "Create Reservation", category: "Reservations", details: "Created new baptism reservation for Elena Villanueva", ip: "192.168.1.101" },
@@ -432,6 +547,8 @@ export const reportStats = {
 }
 
 // ============ FINANCIAL DATA ============
+export type PaymentMethodType = "Cash" | "GCash"
+
 export interface PaymentRecord {
   id: number
   reservationId: number
@@ -440,7 +557,7 @@ export interface PaymentRecord {
   date: string
   amount: number
   status: "Paid" | "Partial" | "Pending" | "Waived"
-  paymentMethod?: string
+  paymentMethod?: PaymentMethodType
   receiptNumber?: string
 }
 
@@ -456,7 +573,7 @@ export const paymentRecords: PaymentRecord[] = [
   { id: 9, reservationId: 9, requester: "Rosa Fernandez", serviceType: "Funeral Mass", date: "2025-03-17", amount: 0, status: "Waived" },
   { id: 10, reservationId: 10, requester: "Miguel Torres", serviceType: "Baptism", date: "2025-04-02", amount: 50, status: "Pending", receiptNumber: "REC-2025-010" },
   { id: 11, reservationId: 11, requester: "Grace Lim", serviceType: "House Blessing & Other", date: "2025-03-05", amount: 0, status: "Waived" },
-  { id: 12, reservationId: 12, requester: "Jose Ramos", serviceType: "Wedding", date: "2025-04-10", amount: 5000, status: "Paid", paymentMethod: "Bank Transfer", receiptNumber: "REC-2025-012" },
+  { id: 12, reservationId: 12, requester: "Jose Ramos", serviceType: "Wedding", date: "2025-04-10", amount: 5000, status: "Paid", paymentMethod: "GCash", receiptNumber: "REC-2025-012" },
   { id: 13, reservationId: 13, requester: "Benigno Aquino", serviceType: "Confirmation", date: "2025-04-15", amount: 0, status: "Waived" },
   { id: 14, reservationId: 14, requester: "Ana Dela Cruz", serviceType: "Anointing of the Sick", date: "2025-03-02", amount: 0, status: "Waived" },
   { id: 15, reservationId: 15, requester: "Carla Mendoza", serviceType: "Baptism", date: "2025-03-22", amount: 50, status: "Paid", paymentMethod: "Cash", receiptNumber: "REC-2025-015" },
@@ -509,3 +626,77 @@ export const serviceFees: Record<ServiceType, number> = {
   "House Blessing & Other": 0,
   "Confirmation": 0,
 }
+
+// ============ DONATIONS ============
+export type DonationPurpose = "Church Maintenance" | "Charity" | "Church Events" | "Altar Fund" | "Youth Ministry" | "General Fund"
+export type DonationMethod = "Cash" | "GCash" | "Bank Transfer" | "Check"
+
+export interface DonationRecord {
+  id: number
+  donorName: string
+  amount: number
+  purpose: DonationPurpose
+  paymentMethod: DonationMethod
+  date: string
+  notes?: string
+  receiptNumber: string
+}
+
+export const donationRecords: DonationRecord[] = [
+  { id: 1, donorName: "Maria Santos", amount: 5000, purpose: "Church Maintenance", paymentMethod: "Cash", date: "2025-03-15", receiptNumber: "DON-2025-001" },
+  { id: 2, donorName: "Juan Cruz", amount: 10000, purpose: "Altar Fund", paymentMethod: "Bank Transfer", date: "2025-03-14", receiptNumber: "DON-2025-002" },
+  { id: 3, donorName: "Ana Dela Cruz", amount: 3000, purpose: "Charity", paymentMethod: "GCash", date: "2025-03-13", receiptNumber: "DON-2025-003" },
+  { id: 4, donorName: "Pedro Reyes", amount: 15000, purpose: "Church Maintenance", paymentMethod: "Check", date: "2025-03-12", receiptNumber: "DON-2025-004" },
+  { id: 5, donorName: "Elena Villanueva", amount: 2000, purpose: "Youth Ministry", paymentMethod: "Cash", date: "2025-03-11", receiptNumber: "DON-2025-005" },
+  { id: 6, donorName: "Antonio Morales", amount: 7500, purpose: "Church Events", paymentMethod: "Bank Transfer", date: "2025-03-10", receiptNumber: "DON-2025-006" },
+  { id: 7, donorName: "Rosa Fernandez", amount: 1000, purpose: "General Fund", paymentMethod: "GCash", date: "2025-03-09", receiptNumber: "DON-2025-007" },
+  { id: 8, donorName: "Miguel Torres", amount: 8000, purpose: "Altar Fund", paymentMethod: "Cash", date: "2025-03-08", receiptNumber: "DON-2025-008" },
+  { id: 9, donorName: "Carmen Diaz", amount: 5000, purpose: "Charity", paymentMethod: "Bank Transfer", date: "2025-03-07", receiptNumber: "DON-2025-009" },
+  { id: 10, donorName: "Ricardo Gomez", amount: 2500, purpose: "Church Maintenance", paymentMethod: "GCash", date: "2025-03-06", receiptNumber: "DON-2025-010" },
+  { id: 11, donorName: "Grace Lim", amount: 12000, purpose: "Church Events", paymentMethod: "Check", date: "2025-03-05", receiptNumber: "DON-2025-011" },
+  { id: 12, donorName: "Jose Ramos", amount: 3500, purpose: "Youth Ministry", paymentMethod: "Cash", date: "2025-03-04", receiptNumber: "DON-2025-012" },
+  { id: 13, donorName: "Luisa Garcia", amount: 6000, purpose: "Altar Fund", paymentMethod: "Bank Transfer", date: "2025-03-03", receiptNumber: "DON-2025-013" },
+  { id: 14, donorName: "Benigno Aquino", amount: 4000, purpose: "General Fund", paymentMethod: "GCash", date: "2025-03-02", receiptNumber: "DON-2025-014" },
+  { id: 15, donorName: "Lorna Navarro", amount: 20000, purpose: "Church Maintenance", paymentMethod: "Bank Transfer", date: "2025-03-01", receiptNumber: "DON-2025-015" },
+  { id: 16, donorName: "Andres Reyes", amount: 1500, purpose: "Charity", paymentMethod: "Cash", date: "2025-02-28", receiptNumber: "DON-2025-016" },
+  { id: 17, donorName: "Carla Mendoza", amount: 9000, purpose: "Church Events", paymentMethod: "Check", date: "2025-02-27", receiptNumber: "DON-2025-017" },
+  { id: 18, donorName: "Raul Bautista", amount: 7000, purpose: "Altar Fund", paymentMethod: "Bank Transfer", date: "2025-02-26", receiptNumber: "DON-2025-018" },
+]
+
+// ============ UPCOMING EVENTS ============
+export type EventCategory = "Liturgical" | "Community" | "Sacramental" | "Fundraising" | "Youth" | "Formation"
+export type EventStatus = "Upcoming" | "Completed" | "Cancelled" | "Expired"
+
+export interface UpcomingEvent {
+  id: number
+  eventName: string
+  date: string
+  time: string
+  category: EventCategory
+  about: string
+  venue: string
+  organizer: string
+  status: EventStatus
+}
+
+export const upcomingEvents: UpcomingEvent[] = [
+  { id: 1, eventName: "Holy Week Recollection", date: "2025-04-14", time: "8:00 AM", category: "Liturgical", about: "A three-day spiritual recollection in preparation for the Holy Week observance. Includes talks, confession, and communal prayers.", venue: "Main Church", organizer: "Fr. Antonio Santos", status: "Upcoming" },
+  { id: 2, eventName: "Parish Feast Day Celebration", date: "2025-04-20", time: "9:00 AM", category: "Community", about: "Annual feast day celebration of Saint Peter the Apostle parish. Featuring a solemn mass, procession, and community fellowship.", venue: "Parish Grounds", organizer: "Parish Council", status: "Upcoming" },
+  { id: 3, eventName: "Batch Baptism Ceremony", date: "2025-04-22", time: "10:00 AM", category: "Sacramental", about: "Monthly batch baptism ceremony for infants and young children. Parents and godparents are required to attend the seminar beforehand.", venue: "Main Church", organizer: "Fr. Roberto Gomez", status: "Upcoming" },
+  { id: 4, eventName: "Church Roof Repair Fundraiser", date: "2025-04-26", time: "7:00 AM", category: "Fundraising", about: "A community-wide fundraising event to support the church roof repair project. Includes a fun run, bazaar, and dinner for a cause.", venue: "Parish Grounds", organizer: "Fundraising Committee", status: "Upcoming" },
+  { id: 5, eventName: "Youth Summer Camp", date: "2025-05-03", time: "8:00 AM", category: "Youth", about: "A three-day summer camp for the parish youth ministry. Activities include team building, spiritual talks, worship, and outdoor games.", venue: "Parish Formation Center", organizer: "Youth Ministry", status: "Upcoming" },
+  { id: 6, eventName: "Pre-Cana Seminar", date: "2025-05-10", time: "9:00 AM", category: "Formation", about: "Pre-Cana marriage preparation seminar for engaged couples. Covers spiritual, emotional, and practical aspects of Catholic marriage.", venue: "Parish Hall", organizer: "Fr. Jose Ramos", status: "Upcoming" },
+  { id: 7, eventName: "Month of Mary Procession", date: "2025-05-15", time: "5:00 PM", category: "Liturgical", about: "Traditional Marian procession in honor of the Blessed Virgin Mary during the month of May. Followed by the crowning of Mary.", venue: "Main Church & Streets", organizer: "Fr. Antonio Santos", status: "Upcoming" },
+  { id: 8, eventName: "Wedding Banns Reading", date: "2025-05-18", time: "10:00 AM", category: "Sacramental", about: "Official reading of wedding banns for upcoming marriage ceremonies in June. All parishioners are encouraged to attend.", venue: "Main Church", organizer: "Fr. Jose Ramos", status: "Upcoming" },
+  { id: 9, eventName: "Parish Blood Drive", date: "2025-05-24", time: "8:00 AM", category: "Community", about: "Community blood drive in partnership with the local Red Cross. Open to all healthy parishioners aged 18-65.", venue: "Parish Hall", organizer: "Parish Council", status: "Upcoming" },
+  { id: 10, eventName: "Altar Server Training", date: "2025-05-31", time: "9:00 AM", category: "Formation", about: "Training workshop for new and existing altar servers. Covers liturgical procedures, vestments, and proper handling of sacred vessels.", venue: "Main Church", organizer: "Fr. Roberto Gomez", status: "Upcoming" },
+  { id: 11, eventName: "Feast of Corpus Christi", date: "2025-06-15", time: "10:00 AM", category: "Liturgical", about: "Solemn celebration of the Feast of Corpus Christi with Eucharistic procession through the parish grounds and nearby streets.", venue: "Main Church & Streets", organizer: "Fr. Antonio Santos", status: "Upcoming" },
+  { id: 12, eventName: "Children's Catechism Summer Program", date: "2025-06-02", time: "8:30 AM", category: "Formation", about: "A two-week summer catechism program for children ages 6-12. Includes Bible stories, arts and crafts, and basic prayers.", venue: "Parish Formation Center", organizer: "Catechism Team", status: "Upcoming" },
+  { id: 13, eventName: "Parish Family Day", date: "2025-06-21", time: "7:00 AM", category: "Community", about: "Annual family day celebration with games, food stalls, raffle draws, and a special family mass. All families are welcome.", venue: "Parish Grounds", organizer: "Parish Council", status: "Upcoming" },
+  { id: 14, eventName: "Youth Worship Night", date: "2025-06-28", time: "6:00 PM", category: "Youth", about: "An evening of praise and worship led by the youth ministry. Features live music, reflection, and adoration of the Blessed Sacrament.", venue: "Main Church", organizer: "Youth Ministry", status: "Upcoming" },
+  { id: 15, eventName: "Mid-Year Charity Drive", date: "2025-07-05", time: "8:00 AM", category: "Fundraising", about: "Mid-year charity drive to collect goods and donations for underprivileged families in the community. Drop-off points at the parish hall.", venue: "Parish Hall", organizer: "Fundraising Committee", status: "Upcoming" },
+  { id: 16, eventName: "Confirmation Batch Preparation", date: "2025-07-12", time: "9:00 AM", category: "Sacramental", about: "Preparation day for the upcoming confirmation batch. Includes rehearsal, final requirements check, and orientation for candidates and sponsors.", venue: "Main Church", organizer: "Bishop Luis Morales", status: "Upcoming" },
+  { id: 17, eventName: "Lenten Recollection (Past)", date: "2025-03-10", time: "8:00 AM", category: "Liturgical", about: "A half-day Lenten recollection that was held earlier this month. The event concluded successfully with over 100 attendees.", venue: "Main Church", organizer: "Fr. Antonio Santos", status: "Completed" },
+  { id: 18, eventName: "Easter Egg Hunt", date: "2025-03-22", time: "9:00 AM", category: "Youth", about: "This event was cancelled due to scheduling conflicts. It will be rescheduled for a later date.", venue: "Parish Grounds", organizer: "Youth Ministry", status: "Cancelled" },
+  { id: 19, eventName: "Parish Spring Cleaning", date: "2025-03-01", time: "7:00 AM", category: "Community", about: "Community spring cleaning of the parish grounds and church interior. This event has already passed.", venue: "Parish Grounds", organizer: "Parish Council", status: "Expired" },
+]

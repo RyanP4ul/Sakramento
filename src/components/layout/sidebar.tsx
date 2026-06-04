@@ -9,13 +9,14 @@ import {
   ClipboardCheck,
   BookOpen,
   Cross,
+  CreditCard,
+  CalendarCheck,
   FileBarChart,
   Users,
   ScrollText,
   Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
+  Menu,
 } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -42,6 +43,8 @@ const navItems: NavItem[] = [
   { label: "Requirements Verification", page: "requirements-verification", icon: ClipboardCheck },
   { label: "Sakramental Records", page: "sakramental-records", icon: BookOpen },
   { label: "Priest Management", page: "priest-management", icon: Cross },
+  { label: "Payments", page: "payments", icon: CreditCard },
+  { label: "Upcoming Events", page: "events", icon: CalendarCheck },
   { label: "Reports", page: "reports", icon: FileBarChart },
   { label: "User Management", page: "user-management", icon: Users },
   { label: "Audit Logs", page: "audit-logs", icon: ScrollText },
@@ -63,21 +66,31 @@ export function Sidebar() {
           sidebarOpen ? "w-64" : "w-[68px]"
         )}
       >
-        {/* Logo Section */}
+        {/* Logo & Hamburger Section */}
         <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-            <Image
-              src="/sakramento-logo.png"
-              alt="SakramentoHub Logo"
-              width={36}
-              height={36}
-              className="object-contain"
-            />
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="h-9 w-9 shrink-0 text-white/70 hover:bg-white/10 hover:text-white"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           {sidebarOpen && (
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-bold text-white truncate">Saint Peter the Apostle</span>
-              <span className="text-[10px] text-white/50 truncate">Church Management</span>
+            <div className="flex items-center gap-3 overflow-hidden min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+                <Image
+                  src="/sakramento-logo.png"
+                  alt="SakramentoHub Logo"
+                  width={36}
+                  height={36}
+                  className="object-contain"
+                />
+              </div>
+              <div className="flex flex-col overflow-hidden min-w-0">
+                <span className="text-sm font-bold text-white truncate">Saint Peter the Apostle</span>
+                <span className="text-[10px] text-white/50 truncate">Church Management</span>
+              </div>
             </div>
           )}
         </div>
@@ -129,7 +142,7 @@ export function Sidebar() {
         <Separator className="bg-white/10" />
 
         {/* Bottom Section */}
-        <div className="p-2 space-y-1">
+        <div className="p-2">
           <Button
             variant="ghost"
             onClick={handleLogout}
@@ -140,17 +153,6 @@ export function Sidebar() {
           >
             <LogOut className="h-4.5 w-4.5 shrink-0" />
             {sidebarOpen && <span>Logout</span>}
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={cn(
-              "w-full text-white/70 hover:bg-white/5 hover:text-white",
-              sidebarOpen ? "justify-start gap-3 px-3" : "justify-center"
-            )}
-          >
-            {sidebarOpen ? <ChevronLeft className="h-4.5 w-4.5 shrink-0" /> : <ChevronRight className="h-4.5 w-4.5 shrink-0" />}
-            {sidebarOpen && <span>Collapse</span>}
           </Button>
         </div>
       </aside>

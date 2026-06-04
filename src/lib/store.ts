@@ -9,6 +9,8 @@ export type PageName =
   | "requirements-verification"
   | "sakramental-records"
   | "priest-management"
+  | "payments"
+  | "events"
   | "reports"
   | "user-management"
   | "audit-logs"

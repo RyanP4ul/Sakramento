@@ -135,6 +135,8 @@ export function ReservationsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("All")
   const [serviceFilter, setServiceFilter] = useState<string>("All")
   const [priorityFilter, setPriorityFilter] = useState<string>("All")
+  const [dateFrom, setDateFrom] = useState<string>("")
+  const [dateTo, setDateTo] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(1)
 
   // Dialog states
@@ -168,9 +170,13 @@ export function ReservationsPage() {
       const matchesService = serviceFilter === "All" || r.serviceType === serviceFilter
       const matchesPriority = priorityFilter === "All" || r.priority === priorityFilter
 
-      return matchesSearch && matchesStatus && matchesService && matchesPriority
+      const reservationDate = new Date(r.date)
+      const matchesDateFrom = !dateFrom || reservationDate >= new Date(dateFrom)
+      const matchesDateTo = !dateTo || reservationDate <= new Date(dateTo + "T23:59:59")
+
+      return matchesSearch && matchesStatus && matchesService && matchesPriority && matchesDateFrom && matchesDateTo
     })
-  }, [reservationList, searchQuery, statusFilter, serviceFilter, priorityFilter])
+  }, [reservationList, searchQuery, statusFilter, serviceFilter, priorityFilter, dateFrom, dateTo])
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredReservations.length / ITEMS_PER_PAGE))
@@ -333,7 +339,7 @@ export function ReservationsPage() {
             </div>
 
             {/* Filters Row */}
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
                   Status:
@@ -396,6 +402,52 @@ export function ReservationsPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  From:
+                </span>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => {
+                    setDateFrom(e.target.value)
+                    setCurrentPage(1)
+                  }}
+                  className="w-[150px]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  To:
+                </span>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => {
+                    setDateTo(e.target.value)
+                    setCurrentPage(1)
+                  }}
+                  className="w-[150px]"
+                />
+              </div>
+
+              {(dateFrom || dateTo) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setDateFrom("")
+                    setDateTo("")
+                    setCurrentPage(1)
+                  }}
+                >
+                  <XCircle className="h-3.5 w-3.5 mr-1" />
+                  Clear dates
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

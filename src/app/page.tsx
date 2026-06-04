@@ -12,6 +12,8 @@ import { RequirementsVerificationPage } from "@/components/pages/requirements-ve
 import { PriestManagementPage } from "@/components/pages/priest-management-page"
 import { UserManagementPage } from "@/components/pages/user-management-page"
 import { ReportsPage } from "@/components/pages/reports-page"
+import { PaymentPage } from "@/components/pages/payment-page"
+import { EventsPage } from "@/components/pages/events-page"
 import { AuditLogsPage } from "@/components/pages/audit-logs-page"
 import { SettingsPage } from "@/components/pages/settings-page"
 
@@ -38,6 +40,10 @@ export default function Home() {
         return <PriestManagementPage />
       case "calendar":
         return <CalendarPage />
+      case "payments":
+        return <PaymentPage />
+      case "events":
+        return <EventsPage />
       case "user-management":
         return <UserManagementPage />
       case "reports":

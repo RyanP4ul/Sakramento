@@ -55,15 +55,14 @@ import {
   Users,
   UserCheck,
   ShieldCheck,
-  Lock,
-  Unlock,
   UserX,
+  UserMinus,
+  UserCheck2,
 } from "lucide-react"
 
 const ITEMS_PER_PAGE = 8
 
-const statusOptions: UserStatus[] = ["Active", "Inactive", "Locked"]
-const roleOptions = ["Super Admin", "Admin", "Staff"]
+const statusOptions: UserStatus[] = ["Active", "Inactive", "Deactivated"]
 
 const statusConfig: Record<
   UserStatus,
@@ -79,17 +78,11 @@ const statusConfig: Record<
     bgClass: "bg-gray-100",
     textClass: "text-gray-700",
   },
-  Locked: {
-    label: "Locked",
+  Deactivated: {
+    label: "Deactivated",
     bgClass: "bg-red-100",
     textClass: "text-red-800",
   },
-}
-
-const roleConfig: Record<string, { bgClass: string; textClass: string }> = {
-  "Super Admin": { bgClass: "bg-[#1B2A4A]/10", textClass: "text-[#1B2A4A]" },
-  Admin: { bgClass: "bg-[#D4AD63]/15", textClass: "text-[#B8942E]" },
-  Staff: { bgClass: "bg-blue-50", textClass: "text-blue-700" },
 }
 
 interface AddFormData {
@@ -108,14 +101,14 @@ interface EditFormData {
 const emptyAddForm: AddFormData = {
   name: "",
   email: "",
-  role: "Staff",
+  role: "Admin",
   password: "",
 }
 
 const emptyEditForm: EditFormData = {
   name: "",
   email: "",
-  role: "Staff",
+  role: "Admin",
 }
 
 function getInitials(name: string): string {
@@ -149,13 +142,12 @@ export function UserManagementPage() {
   const [userList, setUserList] = useState<User[]>(users)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("All")
-  const [roleFilter, setRoleFilter] = useState<string>("All")
   const [currentPage, setCurrentPage] = useState(1)
 
   // Dialog states
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [lockDialogOpen, setLockDialogOpen] = useState(false)
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [userToToggle, setUserToToggle] = useState<User | null>(null)
@@ -166,9 +158,9 @@ export function UserManagementPage() {
   // Calculate stats
   const stats = useMemo(() => {
     const total = userList.length
-    const staff = userList.filter((u) => u.role === "Staff").length
+    const admins = userList.filter((u) => u.role === "Admin").length
     const active = userList.filter((u) => u.status === "Active").length
-    return { total, staff, active }
+    return { total, admins, active }
   }, [userList])
 
   // Filter users
@@ -181,11 +173,10 @@ export function UserManagementPage() {
         u.email.toLowerCase().includes(query)
 
       const matchesStatus = statusFilter === "All" || u.status === statusFilter
-      const matchesRole = roleFilter === "All" || u.role === roleFilter
 
-      return matchesSearch && matchesStatus && matchesRole
+      return matchesSearch && matchesStatus
     })
-  }, [userList, searchQuery, statusFilter, roleFilter])
+  }, [userList, searchQuery, statusFilter])
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE))
@@ -252,25 +243,25 @@ export function UserManagementPage() {
     setEditForm(emptyEditForm)
   }
 
-  // Lock/Unlock
-  const handleOpenLock = (user: User) => {
+  // Deactivate/Activate
+  const handleOpenDeactivate = (user: User) => {
     setUserToToggle(user)
-    setLockDialogOpen(true)
+    setDeactivateDialogOpen(true)
   }
 
-  const handleConfirmLock = () => {
+  const handleConfirmDeactivate = () => {
     if (!userToToggle) return
     setUserList((prev) =>
       prev.map((u) =>
         u.id === userToToggle.id
           ? {
               ...u,
-              status: u.status === "Locked" ? ("Active" as UserStatus) : ("Locked" as UserStatus),
+              status: u.status === "Deactivated" ? ("Active" as UserStatus) : ("Deactivated" as UserStatus),
             }
           : u
       )
     )
-    setLockDialogOpen(false)
+    setDeactivateDialogOpen(false)
     setUserToToggle(null)
   }
 
@@ -301,8 +292,8 @@ export function UserManagementPage() {
       countClass: "text-[#1B2A4A]",
     },
     {
-      label: "Staff",
-      count: stats.staff,
+      label: "Admins",
+      count: stats.admins,
       icon: ShieldCheck,
       bgClass: "bg-[#D4AD63]/10 border-[#D4AD63]/25",
       iconClass: "text-[#C49A3E]",
@@ -391,27 +382,7 @@ export function UserManagementPage() {
                 </Select>
               </div>
 
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                  Role:
-                </span>
-                <Select
-                  value={roleFilter}
-                  onValueChange={handleFilterChange(setRoleFilter)}
-                >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Roles</SelectItem>
-                    {roleOptions.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
             </div>
           </div>
         </CardContent>
@@ -459,7 +430,6 @@ export function UserManagementPage() {
               <TableBody>
                 {paginatedUsers.map((user) => {
                   const statusCfg = statusConfig[user.status]
-                  const roleCfg = roleConfig[user.role] || { bgClass: "bg-gray-100", textClass: "text-gray-700" }
                   const avatarBg = getAvatarColor(user.name)
                   return (
                     <TableRow key={user.id}>
@@ -474,11 +444,6 @@ export function UserManagementPage() {
                           </Avatar>
                           <div className="min-w-0">
                             <p className="font-medium text-sm truncate">{user.name}</p>
-                            <Badge
-                              className={`${roleCfg.bgClass} ${roleCfg.textClass} border-0 text-[10px] font-medium px-1.5 py-0`}
-                            >
-                              {user.role}
-                            </Badge>
                           </div>
                         </div>
                       </TableCell>
@@ -501,17 +466,17 @@ export function UserManagementPage() {
                             variant="ghost"
                             size="sm"
                             className={`h-8 px-2 ${
-                              user.status === "Locked"
+                              user.status === "Deactivated"
                                 ? "text-green-600 hover:text-green-800 hover:bg-green-50"
-                                : "text-amber-600 hover:text-amber-800 hover:bg-amber-50"
+                                : "text-red-500 hover:text-red-700 hover:bg-red-50"
                             }`}
-                            onClick={() => handleOpenLock(user)}
-                            title={user.status === "Locked" ? "Unlock User" : "Lock User"}
+                            onClick={() => handleOpenDeactivate(user)}
+                            title={user.status === "Deactivated" ? "Activate User" : "Deactivate User"}
                           >
-                            {user.status === "Locked" ? (
-                              <Unlock className="h-4 w-4" />
+                            {user.status === "Deactivated" ? (
+                              <UserCheck2 className="h-4 w-4" />
                             ) : (
-                              <Lock className="h-4 w-4" />
+                              <UserMinus className="h-4 w-4" />
                             )}
                           </Button>
                           <Button
@@ -629,25 +594,6 @@ export function UserManagementPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="add-role">Role</Label>
-              <Select
-                value={addForm.role}
-                onValueChange={(val) => setAddForm((prev) => ({ ...prev, role: val }))}
-              >
-                <SelectTrigger id="add-role">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="add-password">Password</Label>
               <Input
                 id="add-password"
@@ -715,24 +661,6 @@ export function UserManagementPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-role">Role</Label>
-              <Select
-                value={editForm.role}
-                onValueChange={(val) => setEditForm((prev) => ({ ...prev, role: val }))}
-              >
-                <SelectTrigger id="edit-role">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
@@ -757,25 +685,25 @@ export function UserManagementPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Lock/Unlock Confirmation Dialog */}
-      <AlertDialog open={lockDialogOpen} onOpenChange={setLockDialogOpen}>
+      {/* Deactivate/Activate Confirmation Dialog */}
+      <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[#1B2A4A]">
-              {userToToggle?.status === "Locked" ? "Unlock User" : "Lock User"}
+              {userToToggle?.status === "Deactivated" ? "Activate User" : "Deactivate User"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {userToToggle?.status === "Locked" ? (
+              {userToToggle?.status === "Deactivated" ? (
                 <>
-                  Are you sure you want to unlock{" "}
+                  Are you sure you want to activate{" "}
                   <span className="font-semibold text-foreground">{userToToggle?.name}</span>?
                   They will be able to log in and use the system again.
                 </>
               ) : (
                 <>
-                  Are you sure you want to lock{" "}
+                  Are you sure you want to deactivate{" "}
                   <span className="font-semibold text-foreground">{userToToggle?.name}</span>?
-                  They will not be able to log in until unlocked.
+                  They will not be able to log in until reactivated.
                 </>
               )}
             </AlertDialogDescription>
@@ -785,14 +713,14 @@ export function UserManagementPage() {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleConfirmLock}
+              onClick={handleConfirmDeactivate}
               className={
-                userToToggle?.status === "Locked"
+                userToToggle?.status === "Deactivated"
                   ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-amber-600 hover:bg-amber-700 text-white"
+                  : "bg-red-600 hover:bg-red-700 text-white"
               }
             >
-              {userToToggle?.status === "Locked" ? "Unlock" : "Lock"}
+              {userToToggle?.status === "Deactivated" ? "Activate" : "Deactivate"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

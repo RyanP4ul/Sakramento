@@ -315,3 +315,29 @@ Stage Summary:
 - 32 new data fields added for Wedding records throughout the system
 - Confirmation and Funeral Mass certificates retain their existing gold-themed layout
 - Lint passes, dev server compiles successfully
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Remove Add Priority Request button and filter Priority Requests list to only show Funeral Mass and Anointing of the Sick
+
+Work Log:
+- Read priority-requests-page.tsx to understand current structure
+- Removed "Add Priority Request" button and its associated Dialog (DialogTrigger, form fields, submit handler)
+- Removed unused imports: DialogTrigger, Plus icon
+- Removed unused state variables: dialogOpen, formServiceType, formFullName, formContact, formDateTime, formStatus, formPayment
+- Removed unused functions: resetForm, handleSubmit, handleDialogOpenChange
+- Added ServiceType import from mock-data
+- Added priorityServiceTypes constant: ["Funeral Mass", "Anointing of the Sick"]
+- Updated filteredRequests to first filter by priorityServiceTypes before applying search/status/payment filters
+- Updated Service filter dropdown to only show "Funeral Mass" and "Anointing of the Sick" options
+- Updated Edit dialog Service Type dropdown to only show priorityServiceTypes
+- Updated page subtitle to "Manage and track Funeral Mass & Anointing of the Sick requests"
+- Cleaned up extra blank lines
+- Verified lint passes clean
+
+Stage Summary:
+- Priority Requests page no longer has "Add Priority Request" button
+- List now only displays records with service types "Funeral Mass" and "Anointing of the Sick"
+- Service filter and Edit form only show those two service types
+- Lint passes, dev server compiles successfully

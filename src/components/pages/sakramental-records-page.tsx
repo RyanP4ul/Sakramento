@@ -7,6 +7,7 @@ import {
   type RecordStatus,
   type SacramentType,
   serviceFees,
+  priests,
 } from "@/lib/mock-data"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -72,6 +73,8 @@ import {
 import Image from "next/image"
 
 const ITEMS_PER_PAGE = 8
+
+const defaultMinister = priests.length > 0 ? priests[0].name : ""
 
 const sacramentTypeOptions: SacramentType[] = [
   "Baptism",
@@ -171,7 +174,7 @@ const emptyFormData: FormData = {
   serviceType: "Baptism",
   name: "",
   date: "",
-  minister: "",
+  minister: defaultMinister,
   parents: "",
   godparents: "",
   spouse: "",
@@ -561,7 +564,7 @@ export function SakramentalRecordsPage() {
   ]
 
   // Form field renderer
-  const renderFormFields = () => (
+  const renderFormFields = (isEdit = false) => (
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="serviceType">Service Type</Label>
@@ -570,6 +573,7 @@ export function SakramentalRecordsPage() {
           onValueChange={(val) =>
             setFormData((prev) => ({ ...prev, serviceType: val as SacramentType }))
           }
+          disabled={isEdit}
         >
           <SelectTrigger id="serviceType">
             <SelectValue placeholder="Select service type" />
@@ -592,6 +596,7 @@ export function SakramentalRecordsPage() {
             value={formData.name}
             onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             placeholder="Enter full name"
+            disabled={isEdit}
           />
         </div>
       )}
@@ -613,6 +618,7 @@ export function SakramentalRecordsPage() {
           value={formData.minister}
           onChange={(e) => setFormData((prev) => ({ ...prev, minister: e.target.value }))}
           placeholder="Enter minister name"
+          disabled
         />
       </div>
 
@@ -625,6 +631,7 @@ export function SakramentalRecordsPage() {
               value={formData.parents}
               onChange={(e) => setFormData((prev) => ({ ...prev, parents: e.target.value }))}
               placeholder="e.g. Jose & Ana Santos"
+              disabled={isEdit}
             />
           </div>
           <div className="space-y-2">
@@ -634,6 +641,7 @@ export function SakramentalRecordsPage() {
               value={formData.godparents}
               onChange={(e) => setFormData((prev) => ({ ...prev, godparents: e.target.value }))}
               placeholder="e.g. Luis & Carmen Reyes"
+              disabled={isEdit}
             />
           </div>
           <div className="space-y-2">
@@ -662,6 +670,7 @@ export function SakramentalRecordsPage() {
                 value={formData.bookNo}
                 onChange={(e) => setFormData((prev) => ({ ...prev, bookNo: e.target.value }))}
                 placeholder="9-789"
+                disabled={isEdit}
               />
             </div>
             <div className="space-y-2">
@@ -671,6 +680,7 @@ export function SakramentalRecordsPage() {
                 value={formData.pageNo}
                 onChange={(e) => setFormData((prev) => ({ ...prev, pageNo: e.target.value }))}
                 placeholder="65"
+                disabled={isEdit}
               />
             </div>
             <div className="space-y-2">
@@ -680,6 +690,7 @@ export function SakramentalRecordsPage() {
                 value={formData.lineNo}
                 onChange={(e) => setFormData((prev) => ({ ...prev, lineNo: e.target.value }))}
                 placeholder="03"
+                disabled={isEdit}
               />
             </div>
           </div>
@@ -1229,7 +1240,6 @@ export function SakramentalRecordsPage() {
                   <TableHead className="text-[#1B2A4A] font-semibold">Service Type</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Name</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Date</TableHead>
-                  <TableHead className="text-[#1B2A4A] font-semibold">Minister</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Status</TableHead>
                   <TableHead className="text-[#1B2A4A] font-semibold">Actions</TableHead>
                 </TableRow>
@@ -1237,22 +1247,16 @@ export function SakramentalRecordsPage() {
               <TableBody>
                 {paginatedRecords.map((record) => {
                   const statusCfg = statusConfig[record.status]
-                  const sacramentCfg = sacramentIconConfig[record.serviceType]
-                  const SacramentIcon = sacramentCfg.icon
                   return (
                     <TableRow key={record.id}>
                       <TableCell className="font-mono text-xs font-medium text-[#1B2A4A]">
                         {record.recordNumber}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <SacramentIcon className={`h-4 w-4 ${sacramentCfg.colorClass}`} />
-                          <span className="whitespace-nowrap">{record.serviceType}</span>
-                        </div>
+                        <span className="whitespace-nowrap">{record.serviceType}</span>
                       </TableCell>
                       <TableCell className="font-medium">{record.name}</TableCell>
                       <TableCell className="text-muted-foreground">{record.date}</TableCell>
-                      <TableCell className="text-muted-foreground">{record.minister}</TableCell>
                       <TableCell>
                         <Badge
                           className={`${statusCfg.bgClass} ${statusCfg.textClass} border-0 text-xs font-medium`}
@@ -2716,7 +2720,7 @@ export function SakramentalRecordsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {renderFormFields()}
+          {renderFormFields(true)}
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button

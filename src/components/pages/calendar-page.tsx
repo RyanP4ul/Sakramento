@@ -40,6 +40,7 @@ import {
   parseISO,
   isAfter,
   startOfDay,
+  getDay,
 } from "date-fns"
 
 // Color mapping for service types
@@ -253,6 +254,7 @@ export function CalendarPage() {
                 const isCurrentDay = isToday(day)
                 const isSelected = selectedDate ? isSameDay(day, selectedDate) : false
                 const hasEvents = dayEvents.length > 0
+                const isMonday = getDay(day) === 1
 
                 // Get unique service types for this day
                 const uniqueServiceTypes = [...new Set(dayEvents.map((e) => e.serviceType))]
@@ -261,18 +263,23 @@ export function CalendarPage() {
                   <button
                     key={idx}
                     onClick={() => {
+                      if (isMonday) return
                       if (hasEvents) {
                         setSelectedDate(day)
                       }
                     }}
+                    disabled={isMonday}
                     className={`
                       relative flex flex-col items-center justify-start
                       min-h-[60px] sm:min-h-[80px] md:min-h-[100px]
                       rounded-lg p-1 sm:p-1.5 transition-all duration-200
-                      ${inCurrentMonth ? "bg-white" : "bg-muted/30"}
-                      ${hasEvents && inCurrentMonth ? "cursor-pointer hover:bg-[#1B2A4A]/5" : "cursor-default"}
+                      ${isMonday && inCurrentMonth ? "bg-red-50/50 cursor-not-allowed" : ""}
+                      ${!isMonday && inCurrentMonth ? "bg-white" : ""}
+                      ${!inCurrentMonth ? "bg-muted/30" : ""}
+                      ${hasEvents && inCurrentMonth && !isMonday ? "cursor-pointer hover:bg-[#1B2A4A]/5" : ""}
+                      ${!hasEvents && inCurrentMonth && !isMonday ? "cursor-default" : ""}
                       ${isSelected ? "ring-2 ring-[#D4AD63] bg-[#D4AD63]/10 shadow-sm" : ""}
-                      ${isCurrentDay && !isSelected ? "bg-[#1B2A4A]/5" : ""}
+                      ${isCurrentDay && !isSelected && !isMonday ? "bg-[#1B2A4A]/5" : ""}
                       border border-transparent
                       ${isSelected ? "border-[#D4AD63]/30" : ""}
                     `}
@@ -281,17 +288,25 @@ export function CalendarPage() {
                     <span
                       className={`
                         text-xs sm:text-sm md:text-base font-medium leading-tight
+                        ${isMonday && inCurrentMonth ? "text-red-300 line-through" : ""}
                         ${!inCurrentMonth ? "text-muted-foreground/40" : ""}
-                        ${inCurrentMonth && !isCurrentDay && !isSelected ? "text-[#1B2A4A]" : ""}
-                        ${isCurrentDay ? "font-bold text-[#1B2A4A]" : ""}
+                        ${inCurrentMonth && !isCurrentDay && !isSelected && !isMonday ? "text-[#1B2A4A]" : ""}
+                        ${isCurrentDay && !isMonday ? "font-bold text-[#1B2A4A]" : ""}
                         ${isSelected ? "font-bold text-[#D4AD63]" : ""}
                       `}
                     >
                       {format(day, "d")}
                     </span>
 
+                    {/* Closed label for Monday */}
+                    {isMonday && inCurrentMonth && (
+                      <span className="text-[8px] sm:text-[9px] font-semibold text-red-400 mt-0.5 uppercase tracking-wider">
+                        Closed
+                      </span>
+                    )}
+
                     {/* Event indicators */}
-                    {hasEvents && inCurrentMonth && (
+                    {hasEvents && inCurrentMonth && !isMonday && (
                       <div className="flex flex-col items-center gap-0.5 sm:gap-1 mt-0.5 sm:mt-1 w-full">
                         {/* Colored dots for service types */}
                         <div className="flex flex-wrap justify-center gap-0.5">
@@ -322,7 +337,7 @@ export function CalendarPage() {
                     )}
 
                     {/* Today indicator */}
-                    {isCurrentDay && inCurrentMonth && (
+                    {isCurrentDay && inCurrentMonth && !isMonday && (
                       <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#1B2A4A]" />
                     )}
                   </button>

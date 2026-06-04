@@ -24,6 +24,11 @@ import {
   Database,
   Lock,
   Info,
+  CalendarCheck,
+  CalendarX,
+  Minus,
+  Plus,
+  X,
 } from "lucide-react"
 
 export function SettingsPage() {
@@ -50,6 +55,33 @@ export function SettingsPage() {
   // System Tab State
   const [dataRetention, setDataRetention] = useState("7")
   const [autoBackup, setAutoBackup] = useState(true)
+
+  // Booking Limiter Tab State
+  const [maxBookingsPerDay, setMaxBookingsPerDay] = useState(5)
+  const [bookingLimiterEnabled, setBookingLimiterEnabled] = useState(true)
+  const [blockedDays, setBlockedDays] = useState<Record<string, boolean>>({
+    Sunday: false,
+    Monday: true,
+    Tuesday: false,
+    Wednesday: false,
+    Thursday: false,
+    Friday: false,
+    Saturday: false,
+  })
+  const [serviceTypeLimits, setServiceTypeLimits] = useState<Record<string, number>>({
+    Baptism: 3,
+    Wedding: 2,
+    "Funeral Mass": 3,
+    "Anointing of the Sick": 2,
+    "House Blessing & Other": 2,
+    Confirmation: 2,
+  })
+  const [blackoutDates, setBlackoutDates] = useState<string[]>([
+    "2025-04-17",
+    "2025-04-18",
+    "2025-12-25",
+  ])
+  const [newBlackoutDate, setNewBlackoutDate] = useState("")
 
   return (
     <div className="space-y-6">
@@ -82,6 +114,10 @@ export function SettingsPage() {
           <TabsTrigger value="system" className="gap-1.5">
             <Server className="h-4 w-4" />
             System
+          </TabsTrigger>
+          <TabsTrigger value="booking" className="gap-1.5">
+            <CalendarCheck className="h-4 w-4" />
+            Booking
           </TabsTrigger>
         </TabsList>
 
@@ -415,6 +451,279 @@ export function SettingsPage() {
                     Records older than the retention period will be automatically archived (1-20 years)
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <Button className="bg-[#1B2A4A] hover:bg-[#1B2A4A]/90 text-white gap-2">
+                <Save className="h-4 w-4" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
+        {/* ============ BOOKING LIMITER TAB ============ */}
+        <TabsContent value="booking">
+          <div className="space-y-6">
+            {/* Booking Limiter Toggle */}
+            <Card className="py-0 overflow-hidden">
+              <CardHeader className="p-6 pb-4">
+                <CardTitle className="text-[#1B2A4A] flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D4AD63]/20">
+                    <CalendarCheck className="h-4 w-4 text-[#D4AD63]" />
+                  </div>
+                  Booking Limiter
+                </CardTitle>
+                <CardDescription>Control and limit booking availability across services</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0 space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
+                      <CalendarCheck className="h-5 w-5 text-[#1B2A4A]" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Enable Booking Limiter</p>
+                      <p className="text-sm text-muted-foreground">
+                        Apply booking limits and restrictions to the calendar
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={bookingLimiterEnabled}
+                    onCheckedChange={setBookingLimiterEnabled}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Max Bookings Per Day */}
+            <Card className={`py-0 overflow-hidden transition-opacity ${!bookingLimiterEnabled ? "opacity-50 pointer-events-none" : ""}`}>
+              <CardHeader className="p-6 pb-4">
+                <CardTitle className="text-[#1B2A4A] flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
+                    <Clock className="h-4 w-4 text-[#1B2A4A]" />
+                  </div>
+                  Daily Booking Limit
+                </CardTitle>
+                <CardDescription>Set the maximum number of bookings allowed per day</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0 space-y-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 shrink-0 border-[#1B2A4A]/20 hover:bg-[#1B2A4A]/5"
+                    onClick={() => setMaxBookingsPerDay((prev) => Math.max(1, prev - 1))}
+                    disabled={maxBookingsPerDay <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="flex-1 text-center">
+                    <span className="text-4xl font-bold text-[#1B2A4A]">{maxBookingsPerDay}</span>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      max booking{maxBookingsPerDay !== 1 ? "s" : ""} per day
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 shrink-0 border-[#1B2A4A]/20 hover:bg-[#1B2A4A]/5"
+                    onClick={() => setMaxBookingsPerDay((prev) => Math.min(20, prev + 1))}
+                    disabled={maxBookingsPerDay >= 20}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Set between 1 and 20 bookings per day. This limit applies across all service types.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Per Service Type Limits */}
+            <Card className={`py-0 overflow-hidden transition-opacity ${!bookingLimiterEnabled ? "opacity-50 pointer-events-none" : ""}`}>
+              <CardHeader className="p-6 pb-4">
+                <CardTitle className="text-[#1B2A4A] flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D4AD63]/20">
+                    <CalendarCheck className="h-4 w-4 text-[#D4AD63]" />
+                  </div>
+                  Service Type Limits
+                </CardTitle>
+                <CardDescription>Set maximum bookings per service type per day</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0 space-y-3">
+                {Object.entries(serviceTypeLimits).map(([serviceType, limit]) => (
+                  <div
+                    key={serviceType}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <span className="text-sm font-medium text-foreground">{serviceType}</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7 border-[#1B2A4A]/20 hover:bg-[#1B2A4A]/5"
+                        onClick={() =>
+                          setServiceTypeLimits((prev) => ({
+                            ...prev,
+                            [serviceType]: Math.max(1, prev[serviceType] - 1),
+                          }))
+                        }
+                        disabled={limit <= 1}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm font-bold text-[#1B2A4A]">{limit}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7 border-[#1B2A4A]/20 hover:bg-[#1B2A4A]/5"
+                        onClick={() =>
+                          setServiceTypeLimits((prev) => ({
+                            ...prev,
+                            [serviceType]: Math.min(10, prev[serviceType] + 1),
+                          }))
+                        }
+                        disabled={limit >= 10}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Blocked Days of the Week */}
+            <Card className={`py-0 overflow-hidden transition-opacity ${!bookingLimiterEnabled ? "opacity-50 pointer-events-none" : ""}`}>
+              <CardHeader className="p-6 pb-4">
+                <CardTitle className="text-[#1B2A4A] flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">
+                    <CalendarX className="h-4 w-4 text-red-600" />
+                  </div>
+                  Blocked Days
+                </CardTitle>
+                <CardDescription>Select which days of the week are unavailable for booking</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0 space-y-4">
+                <div className="grid grid-cols-7 gap-2">
+                  {Object.entries(blockedDays).map(([day, isBlocked]) => (
+                    <button
+                      key={day}
+                      onClick={() =>
+                        setBlockedDays((prev) => ({
+                          ...prev,
+                          [day]: !prev[day],
+                        }))
+                      }
+                      className={`
+                        flex flex-col items-center justify-center gap-1 p-2 sm:p-3 rounded-lg border-2 transition-all duration-200
+                        ${isBlocked
+                          ? "border-red-300 bg-red-50 text-red-600"
+                          : "border-gray-200 bg-white text-[#1B2A4A] hover:border-[#1B2A4A]/30 hover:bg-[#1B2A4A]/5"
+                        }
+                      `}
+                    >
+                      <span className="text-xs sm:text-sm font-bold">{day.slice(0, 3)}</span>
+                      {isBlocked ? (
+                        <CalendarX className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      ) : (
+                        <CalendarCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 opacity-40" />
+                      )}
+                      <span className={`text-[9px] sm:text-[10px] font-medium ${isBlocked ? "text-red-500" : "text-muted-foreground"}`}>
+                        {isBlocked ? "Closed" : "Open"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                  <p className="text-xs text-amber-800 font-medium">
+                    Blocked days will appear as unavailable in the Calendar. No bookings can be created on these days.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Blackout Dates */}
+            <Card className={`py-0 overflow-hidden transition-opacity ${!bookingLimiterEnabled ? "opacity-50 pointer-events-none" : ""}`}>
+              <CardHeader className="p-6 pb-4">
+                <CardTitle className="text-[#1B2A4A] flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
+                    <CalendarX className="h-4 w-4 text-[#1B2A4A]" />
+                  </div>
+                  Blackout Dates
+                </CardTitle>
+                <CardDescription>Block specific dates from booking (holidays, special events, etc.)</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0 space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    type="date"
+                    value={newBlackoutDate}
+                    onChange={(e) => setNewBlackoutDate(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-[#1B2A4A]/20 hover:bg-[#1B2A4A]/5 shrink-0"
+                    onClick={() => {
+                      if (newBlackoutDate && !blackoutDates.includes(newBlackoutDate)) {
+                        setBlackoutDates((prev) => [...prev, newBlackoutDate].sort())
+                        setNewBlackoutDate("")
+                      }
+                    }}
+                    disabled={!newBlackoutDate}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </Button>
+                </div>
+
+                {blackoutDates.length > 0 ? (
+                  <div className="space-y-2">
+                    {blackoutDates.map((date) => {
+                      const dateObj = new Date(date + "T00:00:00")
+                      const formattedDate = dateObj.toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                      return (
+                        <div
+                          key={date}
+                          className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-3"
+                        >
+                          <div className="flex items-center gap-3">
+                            <CalendarX className="h-4 w-4 text-red-500 shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-red-800">{formattedDate}</p>
+                              <p className="text-xs text-red-600">No bookings allowed</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-100"
+                            onClick={() =>
+                              setBlackoutDates((prev) => prev.filter((d) => d !== date))
+                            }
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <CalendarX className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                    <p className="text-sm">No blackout dates configured</p>
+                    <p className="text-xs mt-1">Add specific dates to block from booking</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

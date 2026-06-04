@@ -123,8 +123,6 @@ function getMethodBadge(method: string) {
   switch (method) {
     case "Cash": return "bg-emerald-50 text-emerald-700"
     case "GCash": return "bg-blue-50 text-blue-700"
-    case "Bank Transfer": return "bg-[#1B2A4A]/10 text-[#1B2A4A]"
-    case "Check": return "bg-[#D4AD63]/10 text-[#B8942E]"
     default: return "bg-gray-100 text-gray-700"
   }
 }
@@ -211,7 +209,7 @@ const purposeOptions: DonationPurpose[] = [
   "General Fund",
 ]
 
-const methodOptions: DonationMethod[] = ["Cash", "GCash", "Bank Transfer", "Check"]
+const methodOptions: DonationMethod[] = ["Cash", "GCash"]
 
 // ============ MAIN COMPONENT ============
 

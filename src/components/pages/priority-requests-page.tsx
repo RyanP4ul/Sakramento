@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import { useState, useMemo } from "react";
+import { useState, useMemo } from "react"
 import {
   priorityRequestsData,
-  serviceTypes,
   type PriorityRequest,
   type PriorityRequestStatus,
   type PaymentStatus,
-} from "@/lib/mock-data";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  type ServiceType,
+} from "@/lib/mock-data"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -35,8 +35,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,11 +45,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog"
 import {
   Search,
   ShieldAlert,
-  Plus,
   Eye,
   Pencil,
   Trash2,
@@ -60,9 +58,9 @@ import {
   Phone,
   User,
   CreditCard,
-} from "lucide-react";
+} from "lucide-react"
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 8
 
 const statusConfig: Record<
   PriorityRequestStatus,
@@ -88,7 +86,7 @@ const statusConfig: Record<
     bgClass: "bg-blue-100",
     textClass: "text-blue-800",
   },
-};
+}
 
 const paymentConfig: Record<
   PaymentStatus,
@@ -110,45 +108,25 @@ const paymentConfig: Record<
     bgClass: "bg-purple-100",
     textClass: "text-purple-800",
   },
-};
+}
 
-const statusOptions: PriorityRequestStatus[] = [
-  "Urgent",
-  "High",
-  "Medium",
-  "Scheduled",
-];
-const paymentOptions: PaymentStatus[] = [
-  "Paid",
-  "Partial",
-  "Pending",
-  "Waived",
-];
+const statusOptions: PriorityRequestStatus[] = ["Urgent", "High", "Medium", "Scheduled"]
+const paymentOptions: PaymentStatus[] = ["Paid", "Partial", "Pending", "Waived"]
 
 export function PriorityRequestsPage() {
-  const [requestList, setRequestList] =
-    useState<PriorityRequest[]>(priorityRequestsData);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [serviceFilter, setServiceFilter] = useState<string>("All");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
-  const [paymentFilter, setPaymentFilter] = useState<string>("All");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [requestList, setRequestList] = useState<PriorityRequest[]>(priorityRequestsData)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [serviceFilter, setServiceFilter] = useState<string>("All")
+  const [statusFilter, setStatusFilter] = useState<string>("All")
+  const [paymentFilter, setPaymentFilter] = useState<string>("All")
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Dialog states
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] =
-    useState<PriorityRequest | null>(null);
-  const [requestToDelete, setRequestToDelete] =
-    useState<PriorityRequest | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [formServiceType, setFormServiceType] = useState<string>("");
-  const [formFullName, setFormFullName] = useState("");
-  const [formContact, setFormContact] = useState("");
-  const [formDateTime, setFormDateTime] = useState("");
-  const [formStatus, setFormStatus] = useState<string>("");
-  const [formPayment, setFormPayment] = useState<string>("");
+  const [viewDialogOpen, setViewDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<PriorityRequest | null>(null)
+  const [requestToDelete, setRequestToDelete] = useState<PriorityRequest | null>(null)
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -158,11 +136,11 @@ export function PriorityRequestsPage() {
     dateTime: "",
     status: "" as string,
     payment: "" as string,
-  });
+  })
 
   // Edit handler
   const handleOpenEdit = (request: PriorityRequest) => {
-    setSelectedRequest(request);
+    setSelectedRequest(request)
     setEditForm({
       serviceType: request.serviceType,
       fullName: request.fullName,
@@ -170,112 +148,88 @@ export function PriorityRequestsPage() {
       dateTime: request.dateTime,
       status: request.status,
       payment: request.payment,
-    });
-    setEditDialogOpen(true);
-  };
+    })
+    setEditDialogOpen(true)
+  }
 
   const handleEditSubmit = () => {
-    if (!selectedRequest || !editForm.fullName || !editForm.contact) return;
+    if (!selectedRequest || !editForm.fullName || !editForm.contact) return
     setRequestList((prev) =>
       prev.map((r) =>
         r.id === selectedRequest.id
           ? {
               ...r,
-              serviceType:
-                editForm.serviceType as PriorityRequest["serviceType"],
+              serviceType: editForm.serviceType as PriorityRequest["serviceType"],
               fullName: editForm.fullName,
               contact: editForm.contact,
               dateTime: editForm.dateTime,
               status: editForm.status as PriorityRequestStatus,
               payment: editForm.payment as PaymentStatus,
             }
-          : r,
-      ),
-    );
-    setEditDialogOpen(false);
-    setSelectedRequest(null);
-  };
+          : r
+      )
+    )
+    setEditDialogOpen(false)
+    setSelectedRequest(null)
+  }
 
   // Soft Delete handler (sets status to Low)
   const handleOpenDelete = (request: PriorityRequest) => {
-    setRequestToDelete(request);
-    setDeleteDialogOpen(true);
-  };
+    setRequestToDelete(request)
+    setDeleteDialogOpen(true)
+  }
 
   const handleConfirmDelete = () => {
-    if (!requestToDelete) return;
+    if (!requestToDelete) return
     setRequestList((prev) =>
       prev.map((r) =>
         r.id === requestToDelete.id
           ? { ...r, status: "Low" as PriorityRequestStatus }
-          : r,
-      ),
-    );
-    setDeleteDialogOpen(false);
-    setRequestToDelete(null);
-  };
+          : r
+      )
+    )
+    setDeleteDialogOpen(false)
+    setRequestToDelete(null)
+  }
 
-  // Filter priority requests
+  // Priority service types - only Funeral Mass and Anointing of the Sick
+  const priorityServiceTypes: ServiceType[] = ["Funeral Mass", "Anointing of the Sick"]
+
+  // Filter priority requests - only show Funeral Mass and Anointing of the Sick
   const filteredRequests = useMemo(() => {
-    return requestList.filter((r: PriorityRequest) => {
-      const query = searchQuery.toLowerCase();
-      const matchesSearch =
-        !query ||
-        r.fullName.toLowerCase().includes(query) ||
-        r.contact.toLowerCase().includes(query);
+    return requestList
+      .filter((r: PriorityRequest) => priorityServiceTypes.includes(r.serviceType))
+      .filter((r: PriorityRequest) => {
+        const query = searchQuery.toLowerCase()
+        const matchesSearch =
+          !query ||
+          r.fullName.toLowerCase().includes(query) ||
+          r.contact.toLowerCase().includes(query)
 
-      const matchesService =
-        serviceFilter === "All" || r.serviceType === serviceFilter;
-      const matchesStatus = statusFilter === "All" || r.status === statusFilter;
-      const matchesPayment =
-        paymentFilter === "All" || r.payment === paymentFilter;
+        const matchesService = serviceFilter === "All" || r.serviceType === serviceFilter
+        const matchesStatus = statusFilter === "All" || r.status === statusFilter
+        const matchesPayment = paymentFilter === "All" || r.payment === paymentFilter
 
-      return matchesSearch && matchesService && matchesStatus && matchesPayment;
-    });
-  }, [requestList, searchQuery, serviceFilter, statusFilter, paymentFilter]);
+        return matchesSearch && matchesService && matchesStatus && matchesPayment
+      })
+  }, [requestList, searchQuery, serviceFilter, statusFilter, paymentFilter])
 
   // Pagination
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredRequests.length / ITEMS_PER_PAGE),
-  );
-  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / ITEMS_PER_PAGE))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
   const paginatedRequests = filteredRequests.slice(
     (safeCurrentPage - 1) * ITEMS_PER_PAGE,
-    safeCurrentPage * ITEMS_PER_PAGE,
-  );
+    safeCurrentPage * ITEMS_PER_PAGE
+  )
 
-  const handleFilterChange =
-    (setter: (val: string) => void) => (val: string) => {
-      setter(val);
-      setCurrentPage(1);
-    };
-
-  const resetForm = () => {
-    setFormServiceType("");
-    setFormFullName("");
-    setFormContact("");
-    setFormDateTime("");
-    setFormStatus("");
-    setFormPayment("");
-  };
-
-  const handleSubmit = () => {
-    // In a real app, this would send data to the API
-    resetForm();
-    setDialogOpen(false);
-  };
-
-  const handleDialogOpenChange = (open: boolean) => {
-    setDialogOpen(open);
-    if (!open) {
-      resetForm();
-    }
-  };
+  const handleFilterChange = (setter: (val: string) => void) => (val: string) => {
+    setter(val)
+    setCurrentPage(1)
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header with Add Button */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#1B2A4A] flex items-center gap-2">
@@ -283,113 +237,9 @@ export function PriorityRequestsPage() {
             Priority Requests
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage and track priority sacrament requests
+            Manage and track Funeral Mass & Anointing of the Sick requests
           </p>
         </div>
-
-        <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-[#1B2A4A]">
-                Add Priority Request
-              </DialogTitle>
-              <DialogDescription>
-                Fill in the details to create a new priority request.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="form-service-type">Service Type</Label>
-                <Select
-                  value={formServiceType}
-                  onValueChange={setFormServiceType}
-                >
-                  <SelectTrigger id="form-service-type" className="w-full">
-                    <SelectValue placeholder="Select service type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {serviceTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="form-full-name">Full Name</Label>
-                <Input
-                  id="form-full-name"
-                  placeholder="Enter full name"
-                  value={formFullName}
-                  onChange={(e) => setFormFullName(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="form-contact">Contact</Label>
-                <Input
-                  id="form-contact"
-                  placeholder="Enter contact number"
-                  value={formContact}
-                  onChange={(e) => setFormContact(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="form-date-time">Date & Time</Label>
-                <Input
-                  id="form-date-time"
-                  placeholder="e.g. 2025-04-20 10:00 AM"
-                  value={formDateTime}
-                  onChange={(e) => setFormDateTime(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="form-status">Status</Label>
-                <Select value={formStatus} onValueChange={setFormStatus}>
-                  <SelectTrigger id="form-status" className="w-full">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="form-payment">Payment</Label>
-                <Select value={formPayment} onValueChange={setFormPayment}>
-                  <SelectTrigger id="form-payment" className="w-full">
-                    <SelectValue placeholder="Select payment status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paymentOptions.map((payment) => (
-                      <SelectItem key={payment} value={payment}>
-                        {payment}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => handleDialogOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-[#1B2A4A] hover:bg-[#1B2A4A]/90 text-white"
-                onClick={handleSubmit}
-              >
-                Submit
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Search & Filters */}
@@ -404,8 +254,8 @@ export function PriorityRequestsPage() {
                 className="pl-9 w-full"
                 value={searchQuery}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
+                  setSearchQuery(e.target.value)
+                  setCurrentPage(1)
                 }}
               />
             </div>
@@ -425,7 +275,7 @@ export function PriorityRequestsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All Services</SelectItem>
-                    {serviceTypes.map((type) => (
+                    {priorityServiceTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -521,39 +371,22 @@ export function PriorityRequestsPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-[#1B2A4A]/5 hover:bg-[#1B2A4A]/5">
-                <TableHead className="text-[#1B2A4A] font-semibold">
-                  Service Type
-                </TableHead>
-                <TableHead className="text-[#1B2A4A] font-semibold">
-                  Full Name
-                </TableHead>
-                <TableHead className="text-[#1B2A4A] font-semibold hidden md:table-cell">
-                  Contact
-                </TableHead>
-                <TableHead className="text-[#1B2A4A] font-semibold hidden sm:table-cell">
-                  Date & Time
-                </TableHead>
-                <TableHead className="text-[#1B2A4A] font-semibold">
-                  Status
-                </TableHead>
-                <TableHead className="text-[#1B2A4A] font-semibold">
-                  Payment
-                </TableHead>
-                <TableHead className="text-[#1B2A4A] font-semibold text-right">
-                  Actions
-                </TableHead>
+                <TableHead className="text-[#1B2A4A] font-semibold">Service Type</TableHead>
+                <TableHead className="text-[#1B2A4A] font-semibold">Full Name</TableHead>
+                <TableHead className="text-[#1B2A4A] font-semibold hidden md:table-cell">Contact</TableHead>
+                <TableHead className="text-[#1B2A4A] font-semibold hidden sm:table-cell">Date & Time</TableHead>
+                <TableHead className="text-[#1B2A4A] font-semibold">Status</TableHead>
+                <TableHead className="text-[#1B2A4A] font-semibold">Payment</TableHead>
+                <TableHead className="text-[#1B2A4A] font-semibold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedRequests.map((request) => {
-                const statusCfg = statusConfig[request.status];
-                const paymentCfg = paymentConfig[request.payment];
+                const statusCfg = statusConfig[request.status]
+                const paymentCfg = paymentConfig[request.payment]
 
                 return (
-                  <TableRow
-                    key={request.id}
-                    className="hover:bg-[#1B2A4A]/[0.02]"
-                  >
+                  <TableRow key={request.id} className="hover:bg-[#1B2A4A]/[0.02]">
                     <TableCell>
                       <span className="text-xs bg-[#1B2A4A]/5 text-[#1B2A4A]/80 px-2 py-1 rounded-md font-medium">
                         {request.serviceType}
@@ -589,8 +422,8 @@ export function PriorityRequestsPage() {
                           size="sm"
                           className="h-8 px-2 text-[#1B2A4A] hover:text-[#1B2A4A]/80 hover:bg-[#1B2A4A]/10"
                           onClick={() => {
-                            setSelectedRequest(request);
-                            setViewDialogOpen(true);
+                            setSelectedRequest(request)
+                            setViewDialogOpen(true)
                           }}
                           title="View"
                         >
@@ -618,7 +451,7 @@ export function PriorityRequestsPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                );
+                )
               })}
             </TableBody>
           </Table>
@@ -638,90 +471,70 @@ export function PriorityRequestsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {selectedRequest &&
-            (() => {
-              const sCfg = statusConfig[selectedRequest.status] || {
-                bgClass: "bg-gray-100",
-                textClass: "text-gray-700",
-              };
-              const pCfg = paymentConfig[selectedRequest.payment];
-              return (
-                <div className="space-y-4">
-                  <div className="bg-[#1B2A4A]/5 rounded-lg p-4">
-                    <h3 className="text-lg font-bold text-[#1B2A4A]">
-                      {selectedRequest.fullName}
-                    </h3>
-                    <div className="flex gap-2 mt-2">
-                      <Badge
-                        className={`${sCfg.bgClass} ${sCfg.textClass} border-0 text-xs font-medium`}
-                      >
-                        {selectedRequest.status}
-                      </Badge>
-                      <Badge
-                        className={`${pCfg.bgClass} ${pCfg.textClass} border-0 text-xs font-medium`}
-                      >
-                        {selectedRequest.payment}
-                      </Badge>
+          {selectedRequest && (() => {
+            const sCfg = statusConfig[selectedRequest.status] || { bgClass: "bg-gray-100", textClass: "text-gray-700" }
+            const pCfg = paymentConfig[selectedRequest.payment]
+            return (
+              <div className="space-y-4">
+                <div className="bg-[#1B2A4A]/5 rounded-lg p-4">
+                  <h3 className="text-lg font-bold text-[#1B2A4A]">
+                    {selectedRequest.fullName}
+                  </h3>
+                  <div className="flex gap-2 mt-2">
+                    <Badge className={`${sCfg.bgClass} ${sCfg.textClass} border-0 text-xs font-medium`}>
+                      {selectedRequest.status}
+                    </Badge>
+                    <Badge className={`${pCfg.bgClass} ${pCfg.textClass} border-0 text-xs font-medium`}>
+                      {selectedRequest.payment}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
+                      <User className="h-4 w-4 text-[#1B2A4A]" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Full Name</p>
+                      <p className="font-medium text-[#1B2A4A]">{selectedRequest.fullName}</p>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
-                        <User className="h-4 w-4 text-[#1B2A4A]" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Full Name
-                        </p>
-                        <p className="font-medium text-[#1B2A4A]">
-                          {selectedRequest.fullName}
-                        </p>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
+                      <Phone className="h-4 w-4 text-[#1B2A4A]" />
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
-                        <Phone className="h-4 w-4 text-[#1B2A4A]" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Contact</p>
-                        <p className="font-medium text-[#1B2A4A]">
-                          {selectedRequest.contact}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Contact</p>
+                      <p className="font-medium text-[#1B2A4A]">{selectedRequest.contact}</p>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
-                        <CalendarDays className="h-4 w-4 text-[#1B2A4A]" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Date &amp; Time
-                        </p>
-                        <p className="font-medium text-[#1B2A4A]">
-                          {selectedRequest.dateTime}
-                        </p>
-                      </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
+                      <CalendarDays className="h-4 w-4 text-[#1B2A4A]" />
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
-                        <CreditCard className="h-4 w-4 text-[#1B2A4A]" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Service Type
-                        </p>
-                        <p className="font-medium text-[#1B2A4A]">
-                          <span className="text-xs bg-[#1B2A4A]/5 text-[#1B2A4A]/80 px-2 py-0.5 rounded-md font-medium">
-                            {selectedRequest.serviceType}
-                          </span>
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Date &amp; Time</p>
+                      <p className="font-medium text-[#1B2A4A]">{selectedRequest.dateTime}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B2A4A]/10">
+                      <CreditCard className="h-4 w-4 text-[#1B2A4A]" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Service Type</p>
+                      <p className="font-medium text-[#1B2A4A]">
+                        <span className="text-xs bg-[#1B2A4A]/5 text-[#1B2A4A]/80 px-2 py-0.5 rounded-md font-medium">
+                          {selectedRequest.serviceType}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 </div>
-              );
-            })()}
+              </div>
+            )
+          })()}
         </DialogContent>
       </Dialog>
 
@@ -743,15 +556,14 @@ export function PriorityRequestsPage() {
               <Label htmlFor="edit-service-type">Service Type</Label>
               <Select
                 value={editForm.serviceType}
-                onValueChange={(val) =>
-                  setEditForm((prev) => ({ ...prev, serviceType: val }))
-                }
+                onValueChange={(val) => setEditForm((prev) => ({ ...prev, serviceType: val }))}
+                disabled
               >
                 <SelectTrigger id="edit-service-type">
                   <SelectValue placeholder="Select service type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {serviceTypes.map((type) => (
+                  {priorityServiceTypes.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
                     </SelectItem>
@@ -765,13 +577,9 @@ export function PriorityRequestsPage() {
                 <Input
                   id="edit-full-name"
                   value={editForm.fullName}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      fullName: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, fullName: e.target.value }))}
                   placeholder="Enter full name"
+                  disabled
                 />
               </div>
               <div className="grid gap-2">
@@ -779,13 +587,9 @@ export function PriorityRequestsPage() {
                 <Input
                   id="edit-contact"
                   value={editForm.contact}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      contact: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, contact: e.target.value }))}
                   placeholder="Enter contact number"
+                  disabled
                 />
               </div>
             </div>
@@ -794,9 +598,7 @@ export function PriorityRequestsPage() {
               <Input
                 id="edit-date-time"
                 value={editForm.dateTime}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, dateTime: e.target.value }))
-                }
+                onChange={(e) => setEditForm((prev) => ({ ...prev, dateTime: e.target.value }))}
                 placeholder="e.g. 2025-04-20 10:00 AM"
               />
             </div>
@@ -805,9 +607,7 @@ export function PriorityRequestsPage() {
                 <Label htmlFor="edit-status">Status</Label>
                 <Select
                   value={editForm.status}
-                  onValueChange={(val) =>
-                    setEditForm((prev) => ({ ...prev, status: val }))
-                  }
+                  onValueChange={(val) => setEditForm((prev) => ({ ...prev, status: val }))}
                 >
                   <SelectTrigger id="edit-status">
                     <SelectValue placeholder="Select status" />
@@ -825,9 +625,7 @@ export function PriorityRequestsPage() {
                 <Label htmlFor="edit-payment">Payment</Label>
                 <Select
                   value={editForm.payment}
-                  onValueChange={(val) =>
-                    setEditForm((prev) => ({ ...prev, payment: val }))
-                  }
+                  onValueChange={(val) => setEditForm((prev) => ({ ...prev, payment: val }))}
                 >
                   <SelectTrigger id="edit-payment">
                     <SelectValue placeholder="Select payment" />
@@ -848,8 +646,8 @@ export function PriorityRequestsPage() {
             <Button
               variant="outline"
               onClick={() => {
-                setEditDialogOpen(false);
-                setSelectedRequest(null);
+                setEditDialogOpen(false)
+                setSelectedRequest(null)
               }}
             >
               Cancel
@@ -869,16 +667,13 @@ export function PriorityRequestsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[#1B2A4A]">
-              Confirm Soft Delete
-            </AlertDialogTitle>
+            <AlertDialogTitle className="text-[#1B2A4A]">Confirm Soft Delete</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to soft delete the priority request for{" "}
               <span className="font-semibold text-foreground">
                 {requestToDelete?.fullName}
               </span>
-              ? The request will be marked as Low priority and can be restored
-              by editing.
+              ? The request will be marked as Low priority and can be restored by editing.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -900,10 +695,9 @@ export function PriorityRequestsPage() {
         <div className="flex items-center justify-between pt-2">
           <p className="text-sm text-muted-foreground">
             Page{" "}
-            <span className="font-medium text-foreground">
-              {safeCurrentPage}
-            </span>{" "}
-            of <span className="font-medium text-foreground">{totalPages}</span>
+            <span className="font-medium text-foreground">{safeCurrentPage}</span>{" "}
+            of{" "}
+            <span className="font-medium text-foreground">{totalPages}</span>
           </p>
           <div className="flex items-center gap-1">
             <Button
@@ -947,5 +741,5 @@ export function PriorityRequestsPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

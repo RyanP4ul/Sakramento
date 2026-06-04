@@ -58,7 +58,7 @@ const purposeOptions: DonationPurpose[] = [
   "General Fund",
 ]
 
-const methodOptions: DonationMethod[] = ["Cash", "GCash", "Bank Transfer", "Check"]
+const methodOptions: DonationMethod[] = ["Cash", "GCash"]
 
 const formatCurrency = (amount: number) =>
   `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 0 })}`

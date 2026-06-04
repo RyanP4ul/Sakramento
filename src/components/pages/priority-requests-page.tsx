@@ -5,7 +5,6 @@ import {
   priorityRequestsData,
   type PriorityRequest,
   type PriorityRequestStatus,
-  type PaymentStatus,
   type ServiceType,
 } from "@/lib/mock-data"
 import { Card, CardContent } from "@/components/ui/card"
@@ -57,7 +56,6 @@ import {
   CalendarDays,
   Phone,
   User,
-  CreditCard,
 } from "lucide-react"
 
 const ITEMS_PER_PAGE = 8
@@ -88,37 +86,13 @@ const statusConfig: Record<
   },
 }
 
-const paymentConfig: Record<
-  PaymentStatus,
-  { bgClass: string; textClass: string }
-> = {
-  Paid: {
-    bgClass: "bg-green-100",
-    textClass: "text-green-800",
-  },
-  Partial: {
-    bgClass: "bg-yellow-100",
-    textClass: "text-yellow-800",
-  },
-  Pending: {
-    bgClass: "bg-red-100",
-    textClass: "text-red-800",
-  },
-  Waived: {
-    bgClass: "bg-purple-100",
-    textClass: "text-purple-800",
-  },
-}
-
 const statusOptions: PriorityRequestStatus[] = ["Urgent", "High", "Medium", "Scheduled"]
-const paymentOptions: PaymentStatus[] = ["Paid", "Partial", "Pending", "Waived"]
 
 export function PriorityRequestsPage() {
   const [requestList, setRequestList] = useState<PriorityRequest[]>(priorityRequestsData)
   const [searchQuery, setSearchQuery] = useState("")
   const [serviceFilter, setServiceFilter] = useState<string>("All")
   const [statusFilter, setStatusFilter] = useState<string>("All")
-  const [paymentFilter, setPaymentFilter] = useState<string>("All")
   const [currentPage, setCurrentPage] = useState(1)
 
   // Dialog states
@@ -135,7 +109,6 @@ export function PriorityRequestsPage() {
     contact: "",
     dateTime: "",
     status: "" as string,
-    payment: "" as string,
   })
 
   // Edit handler
@@ -147,7 +120,6 @@ export function PriorityRequestsPage() {
       contact: request.contact,
       dateTime: request.dateTime,
       status: request.status,
-      payment: request.payment,
     })
     setEditDialogOpen(true)
   }
@@ -164,7 +136,6 @@ export function PriorityRequestsPage() {
               contact: editForm.contact,
               dateTime: editForm.dateTime,
               status: editForm.status as PriorityRequestStatus,
-              payment: editForm.payment as PaymentStatus,
             }
           : r
       )
@@ -208,11 +179,10 @@ export function PriorityRequestsPage() {
 
         const matchesService = serviceFilter === "All" || r.serviceType === serviceFilter
         const matchesStatus = statusFilter === "All" || r.status === statusFilter
-        const matchesPayment = paymentFilter === "All" || r.payment === paymentFilter
 
-        return matchesSearch && matchesService && matchesStatus && matchesPayment
+        return matchesSearch && matchesService && matchesStatus
       })
-  }, [requestList, searchQuery, serviceFilter, statusFilter, paymentFilter])
+  }, [requestList, searchQuery, serviceFilter, statusFilter])
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredRequests.length / ITEMS_PER_PAGE))
@@ -306,27 +276,7 @@ export function PriorityRequestsPage() {
                 </Select>
               </div>
 
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                  Payment:
-                </span>
-                <Select
-                  value={paymentFilter}
-                  onValueChange={handleFilterChange(setPaymentFilter)}
-                >
-                  <SelectTrigger className="w-full sm:w-[160px]">
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Payments</SelectItem>
-                    {paymentOptions.map((payment) => (
-                      <SelectItem key={payment} value={payment}>
-                        {payment}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
             </div>
           </div>
         </CardContent>
@@ -376,15 +326,12 @@ export function PriorityRequestsPage() {
                 <TableHead className="text-[#1B2A4A] font-semibold hidden md:table-cell">Contact</TableHead>
                 <TableHead className="text-[#1B2A4A] font-semibold hidden sm:table-cell">Date & Time</TableHead>
                 <TableHead className="text-[#1B2A4A] font-semibold">Status</TableHead>
-                <TableHead className="text-[#1B2A4A] font-semibold">Payment</TableHead>
                 <TableHead className="text-[#1B2A4A] font-semibold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedRequests.map((request) => {
                 const statusCfg = statusConfig[request.status]
-                const paymentCfg = paymentConfig[request.payment]
-
                 return (
                   <TableRow key={request.id} className="hover:bg-[#1B2A4A]/[0.02]">
                     <TableCell>
@@ -406,13 +353,6 @@ export function PriorityRequestsPage() {
                         className={`${statusCfg.bgClass} ${statusCfg.textClass} border-0 text-xs font-medium`}
                       >
                         {request.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`${paymentCfg.bgClass} ${paymentCfg.textClass} border-0 text-xs font-medium`}
-                      >
-                        {request.payment}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -473,7 +413,6 @@ export function PriorityRequestsPage() {
 
           {selectedRequest && (() => {
             const sCfg = statusConfig[selectedRequest.status] || { bgClass: "bg-gray-100", textClass: "text-gray-700" }
-            const pCfg = paymentConfig[selectedRequest.payment]
             return (
               <div className="space-y-4">
                 <div className="bg-[#1B2A4A]/5 rounded-lg p-4">
@@ -483,9 +422,6 @@ export function PriorityRequestsPage() {
                   <div className="flex gap-2 mt-2">
                     <Badge className={`${sCfg.bgClass} ${sCfg.textClass} border-0 text-xs font-medium`}>
                       {selectedRequest.status}
-                    </Badge>
-                    <Badge className={`${pCfg.bgClass} ${pCfg.textClass} border-0 text-xs font-medium`}>
-                      {selectedRequest.payment}
                     </Badge>
                   </div>
                 </div>
@@ -621,24 +557,7 @@ export function PriorityRequestsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-payment">Payment</Label>
-                <Select
-                  value={editForm.payment}
-                  onValueChange={(val) => setEditForm((prev) => ({ ...prev, payment: val }))}
-                >
-                  <SelectTrigger id="edit-payment">
-                    <SelectValue placeholder="Select payment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paymentOptions.map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {p}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
             </div>
           </div>
 

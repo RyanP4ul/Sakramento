@@ -78,9 +78,7 @@ const defaultMinister = priests.length > 0 ? priests[0].name : ""
 
 const sacramentTypeOptions: SacramentType[] = [
   "Baptism",
-  "Confirmation",
   "Wedding",
-  "Funeral Mass",
 ]
 
 const statusOptions: RecordStatus[] = ["Active", "Archived", "Pending"]
@@ -111,9 +109,7 @@ const sacramentIconConfig: Record<
   { icon: React.ElementType; colorClass: string }
 > = {
   Baptism: { icon: Droplets, colorClass: "text-blue-600" },
-  Confirmation: { icon: Sparkles, colorClass: "text-purple-600" },
   Wedding: { icon: Gem, colorClass: "text-pink-600" },
-  "Funeral Mass": { icon: Heart, colorClass: "text-gray-600" },
 }
 
 interface FormData {
@@ -245,25 +241,28 @@ export function SakramentalRecordsPage() {
   // Calculate stats from records
   const stats = useMemo(() => {
     const baptism = records.filter((r) => r.serviceType === "Baptism").length
-    const confirmation = records.filter((r) => r.serviceType === "Confirmation").length
     const wedding = records.filter((r) => r.serviceType === "Wedding").length
-    return { baptism, confirmation, wedding }
+    return { baptism, wedding }
   }, [records])
 
   // Filter records
+  const allowedServiceTypes: SacramentType[] = ["Baptism", "Wedding"]
+
   const filteredRecords = useMemo(() => {
-    return records.filter((r: SakramentalRecord) => {
-      const query = searchQuery.toLowerCase()
-      const matchesSearch =
-        !query ||
-        r.name.toLowerCase().includes(query) ||
-        r.recordNumber.toLowerCase().includes(query)
+    return records
+      .filter((r: SakramentalRecord) => allowedServiceTypes.includes(r.serviceType))
+      .filter((r: SakramentalRecord) => {
+        const query = searchQuery.toLowerCase()
+        const matchesSearch =
+          !query ||
+          r.name.toLowerCase().includes(query) ||
+          r.recordNumber.toLowerCase().includes(query)
 
-      const matchesStatus = statusFilter === "All" || r.status === statusFilter
-      const matchesService = serviceFilter === "All" || r.serviceType === serviceFilter
+        const matchesStatus = statusFilter === "All" || r.status === statusFilter
+        const matchesService = serviceFilter === "All" || r.serviceType === serviceFilter
 
-      return matchesSearch && matchesStatus && matchesService
-    })
+        return matchesSearch && matchesStatus && matchesService
+      })
   }, [records, searchQuery, statusFilter, serviceFilter])
 
   // Pagination
@@ -303,11 +302,7 @@ export function SakramentalRecordsPage() {
     const prefix =
       formData.serviceType === "Baptism"
         ? "BAP"
-        : formData.serviceType === "Confirmation"
-          ? "CONF"
-          : formData.serviceType === "Wedding"
-            ? "WED"
-            : "FUN"
+        : "WED"
     const existingCount = records.filter((r) => r.serviceType === formData.serviceType).length
     // Auto-generate name for Wedding records
     const recordName = formData.serviceType === "Wedding"
@@ -544,14 +539,6 @@ export function SakramentalRecordsPage() {
       bgClass: "bg-blue-50 border-blue-200",
       iconClass: "text-blue-600",
       countClass: "text-blue-700",
-    },
-    {
-      label: "Confirmation Total Records",
-      count: stats.confirmation,
-      icon: Sparkles,
-      bgClass: "bg-purple-50 border-purple-200",
-      iconClass: "text-purple-600",
-      countClass: "text-purple-700",
     },
     {
       label: "Wedding Total Records",

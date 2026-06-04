@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react"
 import {
   paymentRecords,
-  serviceTypes,
   type PaymentRecord,
   type PaymentStatus,
   type PaymentMethodType,
@@ -111,21 +110,29 @@ export function PaymentPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(null)
 
+  // Only Baptism and Wedding
+  const allowedServiceTypes = ["Baptism", "Wedding"]
+
+  // Filtered base records (only Baptism & Wedding)
+  const baptismWeddingRecords = useMemo(() => {
+    return paymentRecords.filter((r) => allowedServiceTypes.includes(r.serviceType))
+  }, [])
+
   // Calculate stats
   const stats = useMemo(() => {
-    const totalRevenue = paymentRecords
+    const totalRevenue = baptismWeddingRecords
       .filter((r) => r.status === "Paid")
       .reduce((sum, r) => sum + r.amount, 0)
-    const totalPending = paymentRecords.filter(
+    const totalPending = baptismWeddingRecords.filter(
       (r) => r.status === "Pending"
     ).length
-    const totalTransactions = paymentRecords.length
+    const totalTransactions = baptismWeddingRecords.length
     return { totalRevenue, totalPending, totalTransactions }
-  }, [])
+  }, [baptismWeddingRecords])
 
   // Filter records
   const filteredRecords = useMemo(() => {
-    return paymentRecords.filter((r: PaymentRecord) => {
+    return baptismWeddingRecords.filter((r: PaymentRecord) => {
       const query = searchQuery.toLowerCase()
       const matchesSearch =
         !query ||
@@ -153,7 +160,7 @@ export function PaymentPage() {
         matchesDateTo
       )
     })
-  }, [searchQuery, statusFilter, serviceFilter, methodFilter, dateFrom, dateTo])
+  }, [baptismWeddingRecords, searchQuery, statusFilter, serviceFilter, methodFilter, dateFrom, dateTo])
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE))
@@ -263,7 +270,7 @@ export function PaymentPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All Services</SelectItem>
-                    {serviceTypes.map((type) => (
+                    {allowedServiceTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -372,12 +379,12 @@ export function PaymentPage() {
             {filteredRecords.length}
           </span>{" "}
           transaction{filteredRecords.length !== 1 ? "s" : ""}
-          {filteredRecords.length !== paymentRecords.length && (
+          {filteredRecords.length !== baptismWeddingRecords.length && (
             <span>
               {" "}
               (filtered from{" "}
               <span className="font-medium text-foreground">
-                {paymentRecords.length}
+                {baptismWeddingRecords.length}
               </span>
               )
             </span>

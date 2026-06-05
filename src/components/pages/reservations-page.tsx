@@ -335,7 +335,6 @@ function ReservationsTab() {
         <div className="grid gap-4">
           {paginatedReservations.map((reservation) => {
             const statusCfg = reservationStatusConfig[reservation.status]
-            const priorityCfg = priorityConfig[reservation.priority]
             const StatusIcon = statusCfg.icon
             return (
               <Card key={reservation.id} className="py-0 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -348,9 +347,6 @@ function ReservationsTab() {
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <h3 className="font-semibold text-[#1B2A4A] text-base truncate">{reservation.title}</h3>
                         <div className="flex items-center gap-2 shrink-0">
-                          <Badge className={`${priorityCfg.bgClass} ${priorityCfg.textClass} border-0 text-xs font-medium`}>
-                            {reservation.priority === "High" && <AlertTriangle className="h-3 w-3 mr-0.5" />}{priorityCfg.label}
-                          </Badge>
                           <Badge className={`${statusCfg.bgClass} ${statusCfg.textClass} border-0 text-xs font-medium`}>
                             <StatusIcon className="h-3 w-3 mr-0.5" />{statusCfg.label}
                           </Badge>
@@ -390,9 +386,6 @@ function ReservationsTab() {
               <div className="bg-[#1B2A4A]/5 rounded-lg p-4">
                 <h3 className="text-lg font-bold text-[#1B2A4A]">{selectedReservation.title}</h3>
                 <div className="flex gap-2 mt-2">
-                  <Badge className={`${priorityConfig[selectedReservation.priority].bgClass} ${priorityConfig[selectedReservation.priority].textClass} border-0 text-xs font-medium`}>
-                    {selectedReservation.priority === "High" && <AlertTriangle className="h-3 w-3 mr-0.5" />}{selectedReservation.priority}
-                  </Badge>
                   <Badge className={`${reservationStatusConfig[selectedReservation.status].bgClass} ${reservationStatusConfig[selectedReservation.status].textClass} border-0 text-xs font-medium`}>{selectedReservation.status}</Badge>
                 </div>
               </div>

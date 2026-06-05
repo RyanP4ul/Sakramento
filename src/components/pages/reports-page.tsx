@@ -9,7 +9,6 @@ import {
   serviceFees,
   donationRecords,
   type DonationRecord,
-  type DonationPurpose,
   type DonationMethod,
 } from "@/lib/mock-data"
 import {
@@ -105,19 +104,6 @@ function getTypeBadge(type: string) {
   }
 }
 
-// Donation purpose color mapping
-function getPurposeBadge(purpose: string) {
-  switch (purpose) {
-    case "Church Maintenance": return "bg-[#1B2A4A]/10 text-[#1B2A4A]"
-    case "Charity": return "bg-rose-50 text-rose-700"
-    case "Church Events": return "bg-[#D4AD63]/10 text-[#B8942E]"
-    case "Altar Fund": return "bg-purple-50 text-purple-700"
-    case "Youth Ministry": return "bg-sky-50 text-sky-700"
-    case "General Fund": return "bg-emerald-50 text-emerald-700"
-    default: return "bg-gray-100 text-gray-700"
-  }
-}
-
 // Donation method color mapping
 function getMethodBadge(method: string) {
   switch (method) {
@@ -200,15 +186,6 @@ const periodTabs: { value: SummaryPeriod; label: string }[] = [
   { value: "day", label: "Day" },
 ]
 
-const purposeOptions: DonationPurpose[] = [
-  "Church Maintenance",
-  "Charity",
-  "Church Events",
-  "Altar Fund",
-  "Youth Ministry",
-  "General Fund",
-]
-
 const methodOptions: DonationMethod[] = ["Cash", "GCash"]
 
 // ============ MAIN COMPONENT ============
@@ -226,7 +203,6 @@ export function ReportsPage() {
 
   // ---- Donation State ----
   const [donSearchQuery, setDonSearchQuery] = useState("")
-  const [donPurposeFilter, setDonPurposeFilter] = useState<string>("All")
   const [donMethodFilter, setDonMethodFilter] = useState<string>("All")
   const [donDateFrom, setDonDateFrom] = useState("")
   const [donDateTo, setDonDateTo] = useState("")
@@ -282,15 +258,14 @@ export function ReportsPage() {
     return donationRecords.filter((d: DonationRecord) => {
       const query = donSearchQuery.toLowerCase()
       const matchesSearch = !query || d.donorName.toLowerCase().includes(query)
-      const matchesPurpose = donPurposeFilter === "All" || d.purpose === donPurposeFilter
       const matchesMethod = donMethodFilter === "All" || d.paymentMethod === donMethodFilter
       let matchesDateFrom = true
       let matchesDateTo = true
       if (donDateFrom) matchesDateFrom = d.date >= donDateFrom
       if (donDateTo) matchesDateTo = d.date <= donDateTo
-      return matchesSearch && matchesPurpose && matchesMethod && matchesDateFrom && matchesDateTo
+      return matchesSearch && matchesMethod && matchesDateFrom && matchesDateTo
     })
-  }, [donSearchQuery, donPurposeFilter, donMethodFilter, donDateFrom, donDateTo])
+  }, [donSearchQuery, donMethodFilter, donDateFrom, donDateTo])
 
   const donTotalPages = Math.max(1, Math.ceil(filteredDonations.length / ITEMS_PER_PAGE))
   const donSafePage = Math.min(donCurrentPage, donTotalPages)
@@ -374,11 +349,10 @@ export function ReportsPage() {
   }
 
   const handleExportDonations = () => {
-    const headers = ["Donor Name", "Amount", "Purpose", "Payment Method", "Date", "Receipt #"]
+    const headers = ["Donor Name", "Amount", "Payment Method", "Date", "Receipt #"]
     const rows = filteredDonations.map((d) => [
       `"${d.donorName}"`,
       d.amount.toString(),
-      d.purpose,
       d.paymentMethod,
       d.date,
       d.receiptNumber,
@@ -709,20 +683,6 @@ export function ReportsPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Purpose:</span>
-                <Select value={donPurposeFilter} onValueChange={donFilterChange(setDonPurposeFilter)}>
-                  <SelectTrigger className="w-full sm:w-[170px]">
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Purposes</SelectItem>
-                    {purposeOptions.map((p) => (
-                      <SelectItem key={p} value={p}>{p}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2 flex-1 min-w-0">
                 <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Payment:</span>
                 <Select value={donMethodFilter} onValueChange={donFilterChange(setDonMethodFilter)}>
                   <SelectTrigger className="w-full sm:w-[160px]">
@@ -799,7 +759,6 @@ export function ReportsPage() {
                     <TableRow className="bg-[#1B2A4A]/5 hover:bg-[#1B2A4A]/5">
                       <TableHead className="text-[#1B2A4A] font-semibold">Donor Name</TableHead>
                       <TableHead className="text-[#1B2A4A] font-semibold">Amount</TableHead>
-                      <TableHead className="text-[#1B2A4A] font-semibold">Purpose</TableHead>
                       <TableHead className="text-[#1B2A4A] font-semibold">Payment Method</TableHead>
                       <TableHead className="text-[#1B2A4A] font-semibold">Date</TableHead>
                       <TableHead className="text-[#1B2A4A] font-semibold text-right">Action</TableHead>
@@ -810,11 +769,6 @@ export function ReportsPage() {
                       <TableRow key={donation.id}>
                         <TableCell className="font-medium text-[#1B2A4A]">{donation.donorName}</TableCell>
                         <TableCell className="font-semibold text-[#1B2A4A]">{formatCurrency(donation.amount)}</TableCell>
-                        <TableCell>
-                          <Badge className={`${getPurposeBadge(donation.purpose)} border-0 text-xs font-medium`}>
-                            {donation.purpose}
-                          </Badge>
-                        </TableCell>
                         <TableCell>
                           <Badge className={`${getMethodBadge(donation.paymentMethod)} border-0 text-xs font-medium`}>
                             {donation.paymentMethod}
@@ -857,9 +811,6 @@ export function ReportsPage() {
                       </Button>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <Badge className={`${getPurposeBadge(donation.purpose)} border-0 text-xs font-medium`}>
-                        {donation.purpose}
-                      </Badge>
                       <Badge className={`${getMethodBadge(donation.paymentMethod)} border-0 text-xs font-medium`}>
                         {donation.paymentMethod}
                       </Badge>
@@ -1237,9 +1188,6 @@ export function ReportsPage() {
                     <p className="text-xl font-bold text-[#D4AD63] mt-1">
                       {formatCurrency(selectedDonation.amount)}
                     </p>
-                    <Badge className={`${getPurposeBadge(selectedDonation.purpose)} border-0 text-xs font-medium mt-2`}>
-                      {selectedDonation.purpose}
-                    </Badge>
                   </div>
                 </div>
               </div>
@@ -1254,10 +1202,6 @@ export function ReportsPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Amount</p>
                   <p className="font-medium text-[#D4AD63]">{formatCurrency(selectedDonation.amount)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Purpose</p>
-                  <p className="font-medium">{selectedDonation.purpose}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Payment Method</p>

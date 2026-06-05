@@ -134,28 +134,20 @@ export function LoginPage() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  className="h-4 w-4 border-[#1B2A4A]/25 data-[state=checked]:bg-[#1B2A4A] data-[state=checked]:border-[#1B2A4A]"
-                />
-                <Label
-                  htmlFor="remember"
-                  className="cursor-pointer text-sm font-normal text-muted-foreground"
-                >
-                  Remember me
-                </Label>
-              </div>
-              <button
-                type="button"
-                className="text-sm font-medium text-[#D4AD63] transition-colors hover:text-[#C49A3E] hover:underline"
+            {/* Remember Me */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+                className="h-4 w-4 border-[#1B2A4A]/25 data-[state=checked]:bg-[#1B2A4A] data-[state=checked]:border-[#1B2A4A]"
+              />
+              <Label
+                htmlFor="remember"
+                className="cursor-pointer text-sm font-normal text-muted-foreground"
               >
-                Forgot password?
-              </button>
+                Remember me
+              </Label>
             </div>
 
             {/* Login Button */}

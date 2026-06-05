@@ -428,22 +428,9 @@ function PriorityRequestsTab() {
   const [serviceFilter, setServiceFilter] = useState<string>("All")
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<PriorityRequest | null>(null)
   const [requestToDelete, setRequestToDelete] = useState<PriorityRequest | null>(null)
-  const [editForm, setEditForm] = useState({ serviceType: "", fullName: "", contact: "", dateTime: "" })
-
-  const handleOpenEdit = (request: PriorityRequest) => {
-    setSelectedRequest(request)
-    setEditForm({ serviceType: request.serviceType, fullName: request.fullName, contact: request.contact, dateTime: request.dateTime })
-    setEditDialogOpen(true)
-  }
-  const handleEditSubmit = () => {
-    if (!selectedRequest || !editForm.fullName || !editForm.contact) return
-    setRequestList((prev) => prev.map((r) => r.id === selectedRequest.id ? { ...r, serviceType: editForm.serviceType as PriorityRequest["serviceType"], fullName: editForm.fullName, contact: editForm.contact, dateTime: editForm.dateTime } : r))
-    setEditDialogOpen(false); setSelectedRequest(null)
-  }
   const handleOpenDelete = (request: PriorityRequest) => { setRequestToDelete(request); setDeleteDialogOpen(true) }
   const handleConfirmDelete = () => {
     if (!requestToDelete) return
@@ -533,7 +520,6 @@ function PriorityRequestsTab() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button variant="ghost" size="sm" className="h-8 px-2 text-[#1B2A4A] hover:text-[#1B2A4A]/80 hover:bg-[#1B2A4A]/10" onClick={() => { setSelectedRequest(request); setViewDialogOpen(true) }} title="View"><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="sm" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50" onClick={() => handleOpenEdit(request)} title="Edit"><Pencil className="h-4 w-4" /></Button>
                         <Button variant="ghost" size="sm" className="h-8 px-2 text-red-600 hover:text-red-800 hover:bg-red-50" onClick={() => handleOpenDelete(request)} title="Soft Delete"><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
@@ -568,28 +554,6 @@ function PriorityRequestsTab() {
                 </div>
               </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-[#1B2A4A] flex items-center gap-2"><Pencil className="h-5 w-5" />Edit Priority Request</DialogTitle>
-            <DialogDescription>Update priority request information</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid gap-2"><Label>Service Type</Label><Select value={editForm.serviceType} onValueChange={(val) => setEditForm((prev) => ({ ...prev, serviceType: val }))} disabled><SelectTrigger><SelectValue placeholder="Select service type" /></SelectTrigger><SelectContent>{priorityServiceTypes.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}</SelectContent></Select></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2"><Label>Full Name</Label><Input value={editForm.fullName} onChange={(e) => setEditForm((prev) => ({ ...prev, fullName: e.target.value }))} placeholder="Enter full name" disabled /></div>
-              <div className="grid gap-2"><Label>Contact</Label><Input value={editForm.contact} onChange={(e) => setEditForm((prev) => ({ ...prev, contact: e.target.value }))} placeholder="Enter contact number" disabled /></div>
-            </div>
-            <div className="grid gap-2"><Label>Date & Time</Label><Input value={editForm.dateTime} onChange={(e) => setEditForm((prev) => ({ ...prev, dateTime: e.target.value }))} placeholder="e.g. 2025-04-20 10:00 AM" /></div>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => { setEditDialogOpen(false); setSelectedRequest(null) }}>Cancel</Button>
-            <Button className="bg-[#1B2A4A] hover:bg-[#1B2A4A]/90 text-white" onClick={handleEditSubmit} disabled={!editForm.fullName || !editForm.contact}>Save Changes</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

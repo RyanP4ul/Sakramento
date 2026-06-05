@@ -27,8 +27,6 @@ const pageTitles: Record<PageName, string> = {
   dashboard: "Dashboard",
   reservations: "Reservations",
   calendar: "Calendar",
-  "priority-requests": "Priority Requests",
-  "requirements-verification": "Requirements Verification",
   "sakramental-records": "Sakramental Records",
   "priest-management": "Priest Management",
   reports: "Reports",

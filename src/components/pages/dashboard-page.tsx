@@ -333,7 +333,7 @@ export function DashboardPage() {
           <CardContent className="pt-0">
               <div className="max-h-96 overflow-y-auto no-scrollbar">
               <div className="space-y-3">
-                {todaySchedule.map((item) => (
+                {todaySchedule.filter((item) => item.status === "Confirmed").map((item) => (
                   <div
                     key={item.id}
                     className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors gap-3"

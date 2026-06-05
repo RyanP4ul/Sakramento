@@ -126,7 +126,6 @@ const availabilityConfig: Record<
 }
 
 const weekdayShortLabels: Record<Weekday, string> = {
-  Monday: "Mon",
   Tuesday: "Tue",
   Wednesday: "Wed",
   Thursday: "Thu",

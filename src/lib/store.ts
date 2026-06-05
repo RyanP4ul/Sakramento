@@ -5,8 +5,6 @@ export type PageName =
   | "dashboard"
   | "reservations"
   | "calendar"
-  | "priority-requests"
-  | "requirements-verification"
   | "sakramental-records"
   | "priest-management"
   | "payments"

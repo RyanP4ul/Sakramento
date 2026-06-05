@@ -56,6 +56,7 @@ import {
   CalendarDays,
   Phone,
   User,
+  CreditCard,
 } from "lucide-react"
 
 const ITEMS_PER_PAGE = 8

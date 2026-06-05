@@ -62,7 +62,6 @@ import {
   Trash2,
   Ban,
   CheckCircle2,
-  AlertTriangle,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -83,7 +82,6 @@ const statusFilterOptions: ("All" | EventStatus)[] = [
   "Upcoming",
   "Completed",
   "Cancelled",
-  "Expired",
 ]
 
 const categoryConfig: Record<EventCategory, { bgClass: string; textClass: string }> = {
@@ -99,7 +97,6 @@ const statusConfig: Record<EventStatus, { bgClass: string; textClass: string; ic
   Upcoming: { bgClass: "bg-emerald-100", textClass: "text-emerald-800", icon: CalendarDays },
   Completed: { bgClass: "bg-blue-100", textClass: "text-blue-800", icon: CheckCircle2 },
   Cancelled: { bgClass: "bg-red-100", textClass: "text-red-800", icon: Ban },
-  Expired: { bgClass: "bg-gray-100", textClass: "text-gray-600", icon: AlertTriangle },
 }
 
 const formatDate = (dateStr: string) => {
@@ -294,14 +291,7 @@ export function EventsPage() {
     toast({ title: "Event deleted", description: `"${name}" has been removed.`, variant: "destructive" })
   }
 
-  // Mark as Expired/Cancelled
-  const handleMarkExpired = (event: UpcomingEvent) => {
-    setEvents((prev) =>
-      prev.map((e) => (e.id === event.id ? { ...e, status: "Expired" as EventStatus } : e))
-    )
-    toast({ title: "Event marked as Expired", description: `"${event.eventName}" is no longer available.` })
-  }
-
+  // Mark as Cancelled
   const handleMarkCancelled = (event: UpcomingEvent) => {
     setEvents((prev) =>
       prev.map((e) => (e.id === event.id ? { ...e, status: "Cancelled" as EventStatus } : e)))
@@ -668,10 +658,6 @@ export function EventsPage() {
                                   <DropdownMenuItem onClick={() => handleMarkCompleted(event)} className="gap-2 text-blue-700">
                                     <CheckCircle2 className="h-4 w-4" />
                                     Mark as Completed
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleMarkExpired(event)} className="gap-2 text-gray-600">
-                                    <AlertTriangle className="h-4 w-4" />
-                                    Mark as Expired
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleMarkCancelled(event)} className="gap-2 text-red-600">
                                     <Ban className="h-4 w-4" />

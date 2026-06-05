@@ -49,6 +49,7 @@ import {
   CalendarDays,
   User,
   FileText,
+  Pencil,
 } from "lucide-react"
 
 const ITEMS_PER_PAGE = 8
@@ -113,10 +114,21 @@ export function PaymentPage() {
   // Only Baptism and Wedding
   const allowedServiceTypes = ["Baptism", "Wedding"]
 
-  // Filtered base records (only Baptism & Wedding)
-  const baptismWeddingRecords = useMemo(() => {
-    return paymentRecords.filter((r) => allowedServiceTypes.includes(r.serviceType))
-  }, [])
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<PaymentRecord | null>(null)
+  const [editAmount, setEditAmount] = useState("")
+  const [editStatus, setEditStatus] = useState<PaymentStatus>("Pending")
+  const [editMethod, setEditMethod] = useState<PaymentMethodType | "">("")
+  const [editReceipt, setEditReceipt] = useState("")
+
+  // Local records state for editing — only Baptism & Wedding with a payment method
+  const [records, setRecords] = useState<PaymentRecord[]>(() =>
+    paymentRecords.filter((r) => allowedServiceTypes.includes(r.serviceType) && !!r.paymentMethod)
+  )
+
+  // Filtered base records (only Baptism & Wedding) — use local state
+  const baptismWeddingRecords = records
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -179,6 +191,34 @@ export function PaymentPage() {
   const handleViewDetails = (record: PaymentRecord) => {
     setSelectedRecord(record)
     setViewDialogOpen(true)
+  }
+
+  const handleEditRecord = (record: PaymentRecord) => {
+    setEditingRecord(record)
+    setEditAmount(String(record.amount))
+    setEditStatus(record.status)
+    setEditMethod(record.paymentMethod || "")
+    setEditReceipt(record.receiptNumber || "")
+    setEditDialogOpen(true)
+  }
+
+  const handleSaveEdit = () => {
+    if (!editingRecord) return
+    setRecords((prev) =>
+      prev.map((r) =>
+        r.id === editingRecord.id
+          ? {
+              ...r,
+              amount: Number(editAmount) || 0,
+              status: editStatus,
+              paymentMethod: editMethod || undefined,
+              receiptNumber: editReceipt || undefined,
+            }
+          : r
+      )
+    )
+    setEditDialogOpen(false)
+    setEditingRecord(null)
   }
 
   const statCards = [
@@ -472,15 +512,28 @@ export function PaymentPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2 text-[#1B2A4A] hover:text-[#1B2A4A]/80 hover:bg-[#1B2A4A]/10"
-                          onClick={() => handleViewDetails(record)}
-                          title="View Details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-[#1B2A4A] hover:text-[#1B2A4A]/80 hover:bg-[#1B2A4A]/10"
+                            onClick={() => handleViewDetails(record)}
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {record.status !== "Paid" && record.paymentMethod !== "GCash" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-[#D4AD63] hover:text-[#D4AD63]/80 hover:bg-[#D4AD63]/10"
+                              onClick={() => handleEditRecord(record)}
+                              title="Edit Payment"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
@@ -547,6 +600,140 @@ export function PaymentPage() {
           </div>
         </div>
       )}
+
+      {/* Edit Payment Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-[#1B2A4A] flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-[#D4AD63]" />
+              Edit Payment
+            </DialogTitle>
+            <DialogDescription>
+              Update payment details for {editingRecord?.requester}
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingRecord && (
+            <div className="space-y-4">
+              {/* Read-only summary */}
+              <div className="bg-[#1B2A4A]/5 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Payer</p>
+                    <p className="font-medium text-[#1B2A4A]">{editingRecord.requester}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Service</p>
+                    <p className="font-medium text-[#1B2A4A]">{editingRecord.serviceType}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Date</p>
+                    <p className="font-medium">{editingRecord.date}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Reservation ID</p>
+                    <p className="font-medium">#{editingRecord.reservationId}</p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Editable fields */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      Amount
+                    </label>
+                    <Input
+                      type="number"
+                      value={editAmount}
+                      onChange={(e) => setEditAmount(e.target.value)}
+                      placeholder="0"
+                      min={0}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <Wallet className="h-3.5 w-3.5" />
+                      Status
+                    </label>
+                    <Select
+                      value={editStatus}
+                      onValueChange={(val) => setEditStatus(val as PaymentStatus)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Paid">Paid</SelectItem>
+                        <SelectItem value="Partial">Partial</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Waived">Waived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <CreditCard className="h-3.5 w-3.5" />
+                      Payment Method
+                    </label>
+                    <Select
+                      value={editMethod}
+                      onValueChange={(val) => setEditMethod(val as PaymentMethodType | "")}
+                      disabled
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="GCash">GCash</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5" />
+                      Receipt Number
+                    </label>
+                    <Input
+                      value={editReceipt}
+                      onChange={(e) => setEditReceipt(e.target.value)}
+                      placeholder="e.g. REC-2025-001"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditDialogOpen(false)
+                setEditingRecord(null)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              className="bg-[#1B2A4A] hover:bg-[#1B2A4A]/90 text-white"
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Details Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>

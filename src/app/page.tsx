@@ -7,8 +7,6 @@ import { DashboardPage } from "@/components/pages/dashboard-page"
 import { ReservationsPage } from "@/components/pages/reservations-page"
 import { CalendarPage } from "@/components/pages/calendar-page"
 import { SakramentalRecordsPage } from "@/components/pages/sakramental-records-page"
-import { PriorityRequestsPage } from "@/components/pages/priority-requests-page"
-import { RequirementsVerificationPage } from "@/components/pages/requirements-verification-page"
 import { PriestManagementPage } from "@/components/pages/priest-management-page"
 import { UserManagementPage } from "@/components/pages/user-management-page"
 import { ReportsPage } from "@/components/pages/reports-page"
@@ -30,10 +28,6 @@ export default function Home() {
         return <DashboardPage />
       case "reservations":
         return <ReservationsPage />
-      case "priority-requests":
-        return <PriorityRequestsPage />
-      case "requirements-verification":
-        return <RequirementsVerificationPage />
       case "sakramental-records":
         return <SakramentalRecordsPage />
       case "priest-management":

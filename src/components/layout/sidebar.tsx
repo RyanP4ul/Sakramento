@@ -39,8 +39,6 @@ const navItems: NavItem[] = [
   { label: "Dashboard", page: "dashboard", icon: LayoutDashboard },
   { label: "Reservations", page: "reservations", icon: CalendarDays },
   { label: "Calendar", page: "calendar", icon: CalendarDays },
-  { label: "Priority Requests", page: "priority-requests", icon: ShieldAlert },
-  { label: "Requirements Verification", page: "requirements-verification", icon: ClipboardCheck },
   { label: "Sakramental Records", page: "sakramental-records", icon: BookOpen },
   { label: "Priest Management", page: "priest-management", icon: Cross },
   { label: "Payments", page: "payments", icon: CreditCard },

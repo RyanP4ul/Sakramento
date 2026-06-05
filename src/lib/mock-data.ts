@@ -434,9 +434,9 @@ export const sakramentalRecords: SakramentalRecord[] = [
 export type PriestStatus = "Active" | "On Leave" | "Retired"
 export type PriestAvailability = "Available" | "Busy" | "On Leave"
 
-export type Weekday = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday"
+export type Weekday = "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday"
 
-export const weekdays: Weekday[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+export const weekdays: Weekday[] = ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 export interface Priest {
   id: number
@@ -453,7 +453,7 @@ export interface Priest {
 }
 
 export const priests: Priest[] = [
-  { id: 1, name: "Rev. Fr. Leopoldo S. Evangelista", title: "Parish Priest", status: "Active", availability: "Available", servicePeriod: "2020 - Present", assignedServices: ["Baptism", "Wedding", "Funeral Mass", "Anointing of the Sick", "House Blessing & Other", "Confirmation"], preferredWeekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], email: "fr.evangelista@sakramentohub.com", phone: "+63 917 111 1111", ordinationDate: "1995-06-15" },
+  { id: 1, name: "Rev. Fr. Leopoldo S. Evangelista", title: "Parish Priest", status: "Active", availability: "Available", servicePeriod: "2020 - Present", assignedServices: ["Baptism", "Wedding", "Funeral Mass", "Anointing of the Sick", "House Blessing & Other", "Confirmation"], preferredWeekdays: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], email: "fr.evangelista@sakramentohub.com", phone: "+63 917 111 1111", ordinationDate: "1995-06-15" },
 ]
 
 // ============ USER MANAGEMENT ============
@@ -658,7 +658,7 @@ export const donationRecords: DonationRecord[] = [
 
 // ============ UPCOMING EVENTS ============
 export type EventCategory = "Liturgical" | "Community" | "Sacramental" | "Fundraising" | "Youth" | "Formation"
-export type EventStatus = "Upcoming" | "Completed" | "Cancelled" | "Expired"
+export type EventStatus = "Upcoming" | "Completed" | "Cancelled"
 
 export interface UpcomingEvent {
   id: number
@@ -675,21 +675,6 @@ export interface UpcomingEvent {
 export const upcomingEvents: UpcomingEvent[] = [
   { id: 1, eventName: "Holy Week Recollection", date: "2025-04-14", time: "8:00 AM", category: "Liturgical", about: "A three-day spiritual recollection in preparation for the Holy Week observance. Includes talks, confession, and communal prayers.", venue: "Main Church", organizer: "Fr. Antonio Santos", status: "Upcoming" },
   { id: 2, eventName: "Parish Feast Day Celebration", date: "2025-04-20", time: "9:00 AM", category: "Community", about: "Annual feast day celebration of Saint Peter the Apostle parish. Featuring a solemn mass, procession, and community fellowship.", venue: "Parish Grounds", organizer: "Parish Council", status: "Upcoming" },
-  { id: 3, eventName: "Batch Baptism Ceremony", date: "2025-04-22", time: "10:00 AM", category: "Sacramental", about: "Monthly batch baptism ceremony for infants and young children. Parents and godparents are required to attend the seminar beforehand.", venue: "Main Church", organizer: "Fr. Roberto Gomez", status: "Upcoming" },
-  { id: 4, eventName: "Church Roof Repair Fundraiser", date: "2025-04-26", time: "7:00 AM", category: "Fundraising", about: "A community-wide fundraising event to support the church roof repair project. Includes a fun run, bazaar, and dinner for a cause.", venue: "Parish Grounds", organizer: "Fundraising Committee", status: "Upcoming" },
-  { id: 5, eventName: "Youth Summer Camp", date: "2025-05-03", time: "8:00 AM", category: "Youth", about: "A three-day summer camp for the parish youth ministry. Activities include team building, spiritual talks, worship, and outdoor games.", venue: "Parish Formation Center", organizer: "Youth Ministry", status: "Upcoming" },
-  { id: 6, eventName: "Pre-Cana Seminar", date: "2025-05-10", time: "9:00 AM", category: "Formation", about: "Pre-Cana marriage preparation seminar for engaged couples. Covers spiritual, emotional, and practical aspects of Catholic marriage.", venue: "Parish Hall", organizer: "Fr. Jose Ramos", status: "Upcoming" },
-  { id: 7, eventName: "Month of Mary Procession", date: "2025-05-15", time: "5:00 PM", category: "Liturgical", about: "Traditional Marian procession in honor of the Blessed Virgin Mary during the month of May. Followed by the crowning of Mary.", venue: "Main Church & Streets", organizer: "Fr. Antonio Santos", status: "Upcoming" },
-  { id: 8, eventName: "Wedding Banns Reading", date: "2025-05-18", time: "10:00 AM", category: "Sacramental", about: "Official reading of wedding banns for upcoming marriage ceremonies in June. All parishioners are encouraged to attend.", venue: "Main Church", organizer: "Fr. Jose Ramos", status: "Upcoming" },
-  { id: 9, eventName: "Parish Blood Drive", date: "2025-05-24", time: "8:00 AM", category: "Community", about: "Community blood drive in partnership with the local Red Cross. Open to all healthy parishioners aged 18-65.", venue: "Parish Hall", organizer: "Parish Council", status: "Upcoming" },
-  { id: 10, eventName: "Altar Server Training", date: "2025-05-31", time: "9:00 AM", category: "Formation", about: "Training workshop for new and existing altar servers. Covers liturgical procedures, vestments, and proper handling of sacred vessels.", venue: "Main Church", organizer: "Fr. Roberto Gomez", status: "Upcoming" },
-  { id: 11, eventName: "Feast of Corpus Christi", date: "2025-06-15", time: "10:00 AM", category: "Liturgical", about: "Solemn celebration of the Feast of Corpus Christi with Eucharistic procession through the parish grounds and nearby streets.", venue: "Main Church & Streets", organizer: "Fr. Antonio Santos", status: "Upcoming" },
-  { id: 12, eventName: "Children's Catechism Summer Program", date: "2025-06-02", time: "8:30 AM", category: "Formation", about: "A two-week summer catechism program for children ages 6-12. Includes Bible stories, arts and crafts, and basic prayers.", venue: "Parish Formation Center", organizer: "Catechism Team", status: "Upcoming" },
-  { id: 13, eventName: "Parish Family Day", date: "2025-06-21", time: "7:00 AM", category: "Community", about: "Annual family day celebration with games, food stalls, raffle draws, and a special family mass. All families are welcome.", venue: "Parish Grounds", organizer: "Parish Council", status: "Upcoming" },
-  { id: 14, eventName: "Youth Worship Night", date: "2025-06-28", time: "6:00 PM", category: "Youth", about: "An evening of praise and worship led by the youth ministry. Features live music, reflection, and adoration of the Blessed Sacrament.", venue: "Main Church", organizer: "Youth Ministry", status: "Upcoming" },
-  { id: 15, eventName: "Mid-Year Charity Drive", date: "2025-07-05", time: "8:00 AM", category: "Fundraising", about: "Mid-year charity drive to collect goods and donations for underprivileged families in the community. Drop-off points at the parish hall.", venue: "Parish Hall", organizer: "Fundraising Committee", status: "Upcoming" },
-  { id: 16, eventName: "Confirmation Batch Preparation", date: "2025-07-12", time: "9:00 AM", category: "Sacramental", about: "Preparation day for the upcoming confirmation batch. Includes rehearsal, final requirements check, and orientation for candidates and sponsors.", venue: "Main Church", organizer: "Bishop Luis Morales", status: "Upcoming" },
-  { id: 17, eventName: "Lenten Recollection (Past)", date: "2025-03-10", time: "8:00 AM", category: "Liturgical", about: "A half-day Lenten recollection that was held earlier this month. The event concluded successfully with over 100 attendees.", venue: "Main Church", organizer: "Fr. Antonio Santos", status: "Completed" },
-  { id: 18, eventName: "Easter Egg Hunt", date: "2025-03-22", time: "9:00 AM", category: "Youth", about: "This event was cancelled due to scheduling conflicts. It will be rescheduled for a later date.", venue: "Parish Grounds", organizer: "Youth Ministry", status: "Cancelled" },
-  { id: 19, eventName: "Parish Spring Cleaning", date: "2025-03-01", time: "7:00 AM", category: "Community", about: "Community spring cleaning of the parish grounds and church interior. This event has already passed.", venue: "Parish Grounds", organizer: "Parish Council", status: "Expired" },
+  { id: 3, eventName: "Lenten Recollection (Past)", date: "2025-03-10", time: "8:00 AM", category: "Liturgical", about: "A half-day Lenten recollection that was held earlier this month. The event concluded successfully with over 100 attendees.", venue: "Main Church", organizer: "Fr. Antonio Santos", status: "Completed" },
+  { id: 4, eventName: "Easter Egg Hunt", date: "2025-03-22", time: "9:00 AM", category: "Youth", about: "This event was cancelled due to scheduling conflicts. It will be rescheduled for a later date.", venue: "Parish Grounds", organizer: "Youth Ministry", status: "Cancelled" },
 ]

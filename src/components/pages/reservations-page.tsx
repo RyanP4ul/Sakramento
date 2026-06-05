@@ -196,21 +196,14 @@ function ReservationsTab() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("All")
   const [serviceFilter, setServiceFilter] = useState<string>("All")
-  const [priorityFilter, setPriorityFilter] = useState<string>("All")
   const [dateFrom, setDateFrom] = useState<string>("")
   const [dateTo, setDateTo] = useState<string>("")
 
   // Dialog states
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
   const [reservationToDelete, setReservationToDelete] = useState<Reservation | null>(null)
-  const [editForm, setEditForm] = useState({
-    title: "", requester: "", date: "", contactNumber: "",
-    serviceType: "Baptism", priority: "Medium" as PriorityLevel, status: "Pending" as ReservationStatus,
-    description: "",
-  })
 
   const stats = useMemo(() => ({
     pending: reservationList.filter((r) => r.status === "Pending").length,
@@ -225,13 +218,12 @@ function ReservationsTab() {
       const matchesSearch = !query || r.title.toLowerCase().includes(query) || r.requester.toLowerCase().includes(query) || r.description.toLowerCase().includes(query)
       const matchesStatus = statusFilter === "All" || r.status === statusFilter
       const matchesService = serviceFilter === "All" || r.serviceType === serviceFilter
-      const matchesPriority = priorityFilter === "All" || r.priority === priorityFilter
       const reservationDate = new Date(r.date)
       const matchesDateFrom = !dateFrom || reservationDate >= new Date(dateFrom)
       const matchesDateTo = !dateTo || reservationDate <= new Date(dateTo + "T23:59:59")
-      return matchesSearch && matchesStatus && matchesService && matchesPriority && matchesDateFrom && matchesDateTo
+      return matchesSearch && matchesStatus && matchesService && matchesDateFrom && matchesDateTo
     })
-  }, [reservationList, searchQuery, statusFilter, serviceFilter, priorityFilter, dateFrom, dateTo])
+  }, [reservationList, searchQuery, statusFilter, serviceFilter, dateFrom, dateTo])
 
   const { currentPage, totalPages, setCurrentPage, paginatedItems } = usePagination(filteredReservations.length, 6)
   const paginatedReservations = filteredReservations.slice(paginatedItems.start, paginatedItems.end)
@@ -239,15 +231,6 @@ function ReservationsTab() {
   const handleFilterChange = (setter: (val: string) => void) => (val: string) => { setter(val); setCurrentPage(1) }
 
   const handleViewDetails = (reservation: Reservation) => { setSelectedReservation(reservation); setViewDialogOpen(true) }
-  const handleOpenEdit = (reservation: Reservation) => {
-    setEditForm({ title: reservation.title, requester: reservation.requester, date: reservation.date, contactNumber: reservation.contactNumber, serviceType: reservation.serviceType, priority: reservation.priority, status: reservation.status, description: reservation.description })
-    setSelectedReservation(reservation); setEditDialogOpen(true)
-  }
-  const handleEditSubmit = () => {
-    if (!selectedReservation || !editForm.title || !editForm.requester) return
-    setReservationList((prev) => prev.map((r) => r.id === selectedReservation.id ? { ...r, title: editForm.title, requester: editForm.requester, date: editForm.date, contactNumber: editForm.contactNumber, serviceType: editForm.serviceType as Reservation["serviceType"], priority: editForm.priority, status: editForm.status, description: editForm.description } : r))
-    setEditDialogOpen(false); setSelectedReservation(null)
-  }
   const handleOpenDelete = (reservation: Reservation) => { setReservationToDelete(reservation); setDeleteDialogOpen(true) }
   const handleConfirmDelete = () => {
     if (!reservationToDelete) return
@@ -310,18 +293,6 @@ function ReservationsTab() {
                   <SelectContent>
                     <SelectItem value="All">All Services</SelectItem>
                     {serviceTypes.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Priority:</span>
-                <Select value={priorityFilter} onValueChange={handleFilterChange(setPriorityFilter)}>
-                  <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="All" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Priorities</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Low">Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -394,7 +365,6 @@ function ReservationsTab() {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <Button variant="ghost" size="sm" className="h-8 px-2 text-[#1B2A4A] hover:text-[#1B2A4A]/80 hover:bg-[#1B2A4A]/10" onClick={() => handleViewDetails(reservation)} title="View"><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="sm" className="h-8 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50" onClick={() => handleOpenEdit(reservation)} title="Edit"><Pencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="sm" className="h-8 px-2 text-red-600 hover:text-red-800 hover:bg-red-50" onClick={() => handleOpenDelete(reservation)} title="Soft Delete" disabled={reservation.status === "Cancelled"}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                   </div>
@@ -436,34 +406,6 @@ function ReservationsTab() {
               <div><p className="text-sm text-muted-foreground">Description</p><p className="text-sm leading-relaxed">{selectedReservation.description}</p></div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[#1B2A4A] flex items-center gap-2"><Pencil className="h-5 w-5" />Edit Reservation</DialogTitle>
-            <DialogDescription>Update reservation information</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2"><Label htmlFor="edit-title">Title</Label><Input id="edit-title" value={editForm.title} onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))} placeholder="Enter reservation title" /></div>
-            <div className="space-y-2"><Label htmlFor="edit-requester">Requester</Label><Input id="edit-requester" value={editForm.requester} onChange={(e) => setEditForm((prev) => ({ ...prev, requester: e.target.value }))} placeholder="Enter requester name" /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2"><Label htmlFor="edit-date">Date</Label><Input id="edit-date" type="date" value={editForm.date} onChange={(e) => setEditForm((prev) => ({ ...prev, date: e.target.value }))} /></div>
-              <div className="space-y-2"><Label htmlFor="edit-contact">Contact Number</Label><Input id="edit-contact" value={editForm.contactNumber} onChange={(e) => setEditForm((prev) => ({ ...prev, contactNumber: e.target.value }))} placeholder="+63 917 111 1111" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2"><Label htmlFor="edit-service">Service Type</Label><Select value={editForm.serviceType} onValueChange={(val) => setEditForm((prev) => ({ ...prev, serviceType: val }))}><SelectTrigger id="edit-service"><SelectValue placeholder="Select service" /></SelectTrigger><SelectContent>{serviceTypes.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}</SelectContent></Select></div>
-              <div className="space-y-2"><Label htmlFor="edit-priority">Priority</Label><Select value={editForm.priority} onValueChange={(val) => setEditForm((prev) => ({ ...prev, priority: val as PriorityLevel }))}><SelectTrigger id="edit-priority"><SelectValue placeholder="Select priority" /></SelectTrigger><SelectContent><SelectItem value="High">High</SelectItem><SelectItem value="Medium">Medium</SelectItem><SelectItem value="Low">Low</SelectItem></SelectContent></Select></div>
-            </div>
-            <div className="space-y-2"><Label htmlFor="edit-status">Status</Label><Select value={editForm.status} onValueChange={(val) => setEditForm((prev) => ({ ...prev, status: val as ReservationStatus }))}><SelectTrigger id="edit-status"><SelectValue placeholder="Select status" /></SelectTrigger><SelectContent><SelectItem value="Pending">Pending</SelectItem><SelectItem value="Approved">Approved</SelectItem><SelectItem value="Completed">Completed</SelectItem><SelectItem value="Cancelled">Cancelled</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label htmlFor="edit-description">Description</Label><Textarea id="edit-description" value={editForm.description} onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))} placeholder="Enter description" rows={3} /></div>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => { setEditDialogOpen(false); setSelectedReservation(null) }}>Cancel</Button>
-            <Button className="bg-[#1B2A4A] hover:bg-[#1B2A4A]/90 text-white" onClick={handleEditSubmit} disabled={!editForm.title || !editForm.requester}>Save Changes</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
